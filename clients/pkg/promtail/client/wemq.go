@@ -123,19 +123,9 @@ func (ap *AccessPicker) syncIpOnce() {
 
 func (ap *AccessPicker) parseAccessServerInfo(s string) (ip, port, idc string) {
 	matches := ap.pattern.FindStringSubmatch(s)
-	ip = ""
-	port = ""
-	idc = ""
-	for i, m := range matches {
-		if i == 1 {
-			ip = m
-		}
-		if i == 2 {
-			port = m
-		}
-		if i == 4 {
-			idc = m
-		}
+	if len(matches) < 5 {
+		return
 	}
+	ip, port, idc = matches[1], matches[2], matches[4]
 	return
 }
