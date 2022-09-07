@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -155,6 +156,8 @@ type client struct {
 	// ctx is used in any upstream calls from the `client`.
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	picker *AccessPicker
 }
 
 // Tripperware can wrap a roundtripper.
@@ -167,11 +170,20 @@ func New(metrics *Metrics, cfg Config, streamLagLabels []string, logger log.Logg
 
 func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger log.Logger) (*client, error) {
 
-	if cfg.URL.URL == nil {
-		return nil, errors.New("client needs target URL")
+	if err := validateConfig(cfg); err != nil {
+		return nil, err
 	}
+	//if cfg.URL.URL == nil {
+	//	return nil, errors.New("client needs target URL")
+	//}
 
 	ctx, cancel := context.WithCancel(context.Background())
+
+	var accessPicker *AccessPicker
+	if cfg.SendToWeMQ {
+		level.Info(logger).Log("server", "wemq-access")
+		accessPicker = NewAccessPicker(cfg.CCAddress, cfg.IDC, logger)
+	}
 
 	c := &client{
 		logger:          log.With(logger, "component", "client", "host", cfg.URL.Host),
@@ -184,6 +196,8 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger lo
 		externalLabels: cfg.ExternalLabels.LabelSet,
 		ctx:            ctx,
 		cancel:         cancel,
+
+		picker: accessPicker,
 	}
 	if cfg.Name != "" {
 		c.name = cfg.Name
@@ -210,6 +224,23 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger lo
 	c.wg.Add(1)
 	go c.run()
 	return c, nil
+}
+
+func validateConfig(cfg Config) error {
+	if cfg.URL.URL == nil && !cfg.SendToWeMQ {
+		return errors.New("client needs target URL or WeMQ settings")
+	}
+
+	if !cfg.SendToWeMQ {
+		return nil
+	}
+	if cfg.CCAddress.URL == nil {
+		return errors.New("client needs cc-address when sending data to wemq")
+	}
+	if cfg.AccessUri == "" {
+		return errors.New("client needs access-path when sending data to wemq")
+	}
+	return nil
 }
 
 // NewWithTripperware creates a new Loki client with a custom tripperware.
@@ -383,7 +414,11 @@ func (c *client) sendBatch(tenantID string, batch *batch) {
 func (c *client) send(ctx context.Context, tenantID string, buf []byte) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.cfg.Timeout)
 	defer cancel()
-	req, err := http.NewRequest("POST", c.cfg.URL.String(), bytes.NewReader(buf))
+	url, err := c.getSendDataUrl()
+	if err != nil {
+		return -1, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewReader(buf))
 	if err != nil {
 		return -1, err
 	}
@@ -412,6 +447,20 @@ func (c *client) send(ctx context.Context, tenantID string, buf []byte) (int, er
 		err = fmt.Errorf("server returned HTTP status %s (%d): %s", resp.Status, resp.StatusCode, line)
 	}
 	return resp.StatusCode, err
+}
+
+func (c *client) getSendDataUrl() (string, error) {
+	if !c.cfg.SendToWeMQ {
+		return c.cfg.URL.String(), nil
+	}
+	// get ip from wemq cc
+
+	endpoint := c.picker.Pick()
+	if endpoint == "" {
+		return "", errors.New("pick access server endpoint failed")
+	}
+	// todo: get ip from access picker
+	return fmt.Sprintf("http://%s/%s", endpoint, strings.TrimLeft(c.cfg.AccessUri, "/")), nil
 }
 
 func (c *client) getTenantID(labels model.LabelSet) string {

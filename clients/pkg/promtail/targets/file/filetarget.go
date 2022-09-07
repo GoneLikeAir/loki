@@ -2,11 +2,13 @@ package file
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/bmatcuk/doublestar"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
@@ -69,8 +71,12 @@ type FileTarget struct {
 	targetEventHandler chan fileTargetEvent
 	watches            map[string]struct{}
 	path               string
+	excludePath        []string
+	suffixFilter       []string
 	quit               chan struct{}
 	done               chan struct{}
+
+	globSearcher *GlobSearcher
 
 	tails map[string]*tailer
 
@@ -84,16 +90,21 @@ func NewFileTarget(
 	handler api.EntryHandler,
 	positions positions.Positions,
 	path string,
+	excludePath []string,
+	suffixFilter []string,
 	labels model.LabelSet,
 	discoveredLabels model.LabelSet,
 	targetConfig *Config,
 	fileEventWatcher chan fsnotify.Event,
 	targetEventHandler chan fileTargetEvent,
+	globSearcher *GlobSearcher,
 ) (*FileTarget, error) {
 	t := &FileTarget{
 		logger:             logger,
 		metrics:            metrics,
 		path:               path,
+		excludePath:        excludePath,
+		suffixFilter:       suffixFilter,
 		labels:             labels,
 		discoveredLabels:   discoveredLabels,
 		handler:            api.AddLabelsMiddleware(labels).Wrap(handler),
@@ -104,6 +115,7 @@ func NewFileTarget(
 		targetConfig:       targetConfig,
 		fileEventWatcher:   fileEventWatcher,
 		targetEventHandler: targetEventHandler,
+		globSearcher:       globSearcher,
 	}
 
 	go t.run()
@@ -190,11 +202,24 @@ func (t *FileTarget) sync() error {
 		matches = []string{t.path}
 	} else {
 		// Gets current list of files to tail.
-		matches, err = doublestar.Glob(t.path)
+		matches, err = t.globSearcher.Search(t.path, t.excludePath, t.suffixFilter)
+		level.Debug(t.logger).Log("path", t.path, "match len", len(matches))
+		level.Debug(t.logger).Log("match path", fmt.Sprintf("%v", matches))
+		//matches, err = doublestar.Glob(t.path)
 		if err != nil {
 			return errors.Wrap(err, "filetarget.sync.filepath.Glob")
 		}
 	}
+
+	//level.Debug(t.logger).Log("msg", "before DropExcludePath", "matches len", len(matches))
+	//matches, err := t.dropExcludedPath(matches)
+	//if err != nil {
+	//	return err
+	//}
+	//level.Debug(t.logger).Log("msg", "after DropExcludePath", "matches len", len(matches))
+	//
+	//matches = t.filterSuffix(matches)
+	//level.Debug(t.logger).Log("msg", "after filterSuffix", "matches len", len(matches))
 
 	if len(matches) == 0 {
 		level.Debug(t.logger).Log("msg", "no files matched requested path, nothing will be tailed", "path", t.path)
@@ -243,6 +268,63 @@ func (t *FileTarget) sync() error {
 	t.stopTailingAndRemovePosition(toStopTailing)
 
 	return nil
+}
+
+func (t *FileTarget) dropExcludedPath(matches []string) ([]string, error) {
+	level.Debug(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "start time", time.Now().String())
+	//needExclude := make(map[string]string)
+	afterExcludeMatches := make([]string, 0)
+	for _, m := range matches {
+		keep := true
+		for _, ep := range t.excludePath {
+			if matched, err := path.Match(ep, m); err == nil && matched {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			afterExcludeMatches = append(afterExcludeMatches, m)
+		}
+	}
+
+	//for _, ep := range t.excludePath {
+	//	ms, err := doublestar.Glob(ep)
+	//	if err != nil {
+	//		return nil, errors.Wrap(err, "filetarget.sync.excludePath.Glob")
+	//	}
+	//	for _, p := range ms {
+	//		needExclude[p] = "ok"
+	//	}
+	//}
+	//level.Info(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "start time", time.Now().String())
+	//
+	//finalMatchs := make([]string, 0)
+	//for _, m := range matches {
+	//	if _, ok := needExclude[m]; !ok {
+	//		finalMatchs = append(finalMatchs, m)
+	//	}
+	//}
+	level.Debug(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "end time", time.Now().String())
+	return afterExcludeMatches, nil
+}
+
+func (t *FileTarget) filterSuffix(matches []string) []string {
+	level.Debug(t.logger).Log("filterSuffix", "targetPath", t.path, "start time", time.Now().String())
+	if t.suffixFilter == nil || len(t.suffixFilter) == 0 {
+		return matches
+	}
+	filteredPaths := make([]string, 0)
+
+	for _, p := range matches {
+		for _, suffix := range t.suffixFilter {
+			if strings.HasSuffix(p, suffix) {
+				filteredPaths = append(filteredPaths, p)
+				break
+			}
+		}
+	}
+	level.Debug(t.logger).Log("filterSuffix", "targetPath", t.path, "start time", time.Now().String())
+	return filteredPaths
 }
 
 func (t *FileTarget) startWatching(dirs map[string]struct{}) {
@@ -297,6 +379,7 @@ func (t *FileTarget) startTailing(ps []string) {
 			continue
 		}
 		t.tails[p] = tailer
+		level.Info(t.logger).Log("msg", "addTailerToMap", "filename", p, "tailerLen", len(t.tails))
 	}
 }
 
@@ -308,6 +391,7 @@ func (t *FileTarget) stopTailingAndRemovePosition(ps []string) {
 			tailer.stop()
 			t.positions.Remove(tailer.path)
 			delete(t.tails, p)
+			level.Info(t.logger).Log("function", "stopTailingAndRemovePosition", "stop tailer", tailer.path, "after delete", len(t.tails))
 		}
 		if h, ok := t.handler.(api.InstrumentedEntryHandler); ok {
 			h.UnregisterLatencyMetric(prometheus.Labels{client.LatencyLabel: p})
@@ -326,6 +410,8 @@ func (t *FileTarget) pruneStoppedTailers() {
 	}
 	for _, tr := range toRemove {
 		delete(t.tails, tr)
+		level.Info(t.logger).Log("function", "pruneStoppedTailers", "stop tailer", tr, "after delete", len(t.tails))
+
 	}
 }
 

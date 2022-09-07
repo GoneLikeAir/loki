@@ -33,6 +33,8 @@ const (
 	pathLabel              = "__path__"
 	hostLabel              = "__host__"
 	kubernetesPodNodeField = "spec.nodeName"
+	excludedPathLabel      = "__excluded_path__"
+	suffixFilterLabel      = "__suffix_filter__"
 )
 
 // FileTargetManager manages a set of targets.
@@ -46,7 +48,8 @@ type FileTargetManager struct {
 	watcher            *fsnotify.Watcher
 	targetEventHandler chan fileTargetEvent
 
-	wg sync.WaitGroup
+	globSearcher *GlobSearcher
+	wg           sync.WaitGroup
 }
 
 // NewFileTargetManager creates a new TargetManager.
@@ -68,12 +71,14 @@ func NewFileTargetManager(
 		return nil, err
 	}
 	ctx, quit := context.WithCancel(context.Background())
+	globSearcher := NewGlobSearcher(log.With(logger, "component", "glob_searcher"))
 	tm := &FileTargetManager{
 		log:                logger,
 		quit:               quit,
 		watcher:            watcher,
 		targetEventHandler: make(chan fileTargetEvent),
 		syncers:            map[string]*targetSyncer{},
+		globSearcher:       globSearcher,
 		manager:            discovery.NewManager(ctx, log.With(logger, "component", "discovery")),
 	}
 
@@ -129,6 +134,7 @@ func NewFileTargetManager(
 			entryHandler:      pipeline.Wrap(client),
 			targetConfig:      targetConfig,
 			fileEventWatchers: map[string]chan fsnotify.Event{},
+			globSearcher:      globSearcher,
 		}
 		tm.syncers[cfg.JobName] = s
 		configs[cfg.JobName] = cfg.ServiceDiscoveryConfig.Configs()
@@ -259,6 +265,8 @@ type targetSyncer struct {
 
 	relabelConfig []*relabel.Config
 	targetConfig  *Config
+
+	globSearcher *GlobSearcher
 }
 
 // sync synchronize target based on received target groups received by service discovery
@@ -310,6 +318,18 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				continue
 			}
 
+			excludedPaths := make([]string, 0)
+			ep, ok := labels[excludedPathLabel]
+			if ok {
+				excludedPaths = strings.Split(string(ep), ";")
+			}
+
+			suffixFilters := make([]string, 0)
+			pf, ok := labels[suffixFilterLabel]
+			if ok {
+				suffixFilters = strings.Split(string(pf), ";")
+			}
+
 			for k := range labels {
 				if strings.HasPrefix(string(k), "__") {
 					delete(labels, k)
@@ -333,7 +353,7 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				watcher = make(chan fsnotify.Event)
 				s.fileEventWatchers[wkey] = watcher
 			}
-			t, err := s.newTarget(wkey, labels, discoveredLabels, watcher, targetEventHandler)
+			t, err := s.newTarget(wkey, excludedPaths, suffixFilters, labels, discoveredLabels, watcher, targetEventHandler, s.globSearcher)
 			if err != nil {
 				dropped = append(dropped, target.NewDroppedTarget(fmt.Sprintf("Failed to create target: %s", err.Error()), discoveredLabels))
 				level.Error(s.log).Log("msg", "Failed to create target", "key", key, "error", err)
@@ -387,8 +407,8 @@ func (s *targetSyncer) sendFileCreateEvent(event fsnotify.Event) {
 	}
 }
 
-func (s *targetSyncer) newTarget(path string, labels model.LabelSet, discoveredLabels model.LabelSet, fileEventWatcher chan fsnotify.Event, targetEventHandler chan fileTargetEvent) (*FileTarget, error) {
-	return NewFileTarget(s.metrics, s.log, s.entryHandler, s.positions, path, labels, discoveredLabels, s.targetConfig, fileEventWatcher, targetEventHandler)
+func (s *targetSyncer) newTarget(path string, excludePath []string, suffixFilter []string, labels model.LabelSet, discoveredLabels model.LabelSet, fileEventWatcher chan fsnotify.Event, targetEventHandler chan fileTargetEvent, globSearcher *GlobSearcher) (*FileTarget, error) {
+	return NewFileTarget(s.metrics, s.log, s.entryHandler, s.positions, path, excludePath, suffixFilter, labels, discoveredLabels, s.targetConfig, fileEventWatcher, targetEventHandler, globSearcher)
 }
 
 func (s *targetSyncer) DroppedTargets() []target.Target {

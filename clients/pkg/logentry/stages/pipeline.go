@@ -2,6 +2,7 @@ package stages
 
 import (
 	"context"
+	"github.com/go-kit/log/level"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -111,6 +112,7 @@ func (p *Pipeline) Wrap(next api.EntryHandler) api.EntryHandler {
 				if rateLimiterDrop {
 					if !rateLimiter.Allow() {
 						p.dropCount.WithLabelValues(rateLimiterDropReason).Inc()
+						level.Info(p.logger).Log("msg", "too many logs, drop line", "labels", e.Labels)
 						continue
 					}
 				} else {

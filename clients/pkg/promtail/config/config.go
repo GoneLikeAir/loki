@@ -52,7 +52,9 @@ func (c Config) String() string {
 }
 
 func (c *Config) Setup() {
-	if c.ClientConfig.URL.URL != nil {
+	//if c.ClientConfig.URL.URL != nil {
+	// update by alexli
+	if c.ClientConfig.URL.URL != nil || c.ClientConfig.SendToWeMQ {
 		// if a single client config is used we add it to the multiple client config for backward compatibility
 		c.ClientConfigs.Configs = append(c.ClientConfigs.Configs, c.ClientConfig)
 	}
