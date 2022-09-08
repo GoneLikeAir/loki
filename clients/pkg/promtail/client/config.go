@@ -46,10 +46,11 @@ type Config struct {
 	TenantID string `yaml:"tenant_id"`
 
 	// WeMQ Access configs
-	SendToWeMQ bool             `yaml:"send_to_we_mq"`
-	IDC        string           `yaml:"idc"`
-	CCAddress  flagext.URLValue `yaml:"cc_address"`
-	AccessUri  string           `yaml:"access_uri"`
+	SendToWeMQ bool   `yaml:"send_to_we_mq"`
+	IDC        string `yaml:"idc"`
+	CCEndpoint string `yaml:"cc_endpoint"`
+	CCUri      string `yaml:"cc_uri"`
+	AccessUri  string `yaml:"access_uri"`
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by
@@ -68,7 +69,8 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.StringVar(&c.TenantID, prefix+"client.tenant-id", "", "Tenant ID to use when pushing logs to Loki.")
 
 	f.BoolVar(&c.SendToWeMQ, prefix+"client.send-to-wemq", false, "Enable to send data to WeMQ access")
-	f.Var(&c.CCAddress, prefix+"client.cc-address", "URL of wemq CC")
+	f.StringVar(&c.CCEndpoint, prefix+"client.cc-endpoint", "", "endpoint of wemq CC")
+	f.StringVar(&c.CCUri, prefix+"client.cc-uri", "", "The uri of wemq cc")
 	f.StringVar(&c.IDC, prefix+"client.idc", "", "Find out the wemq-source in which IDC can receive data. If not set, all the wemq-access can be used")
 	f.StringVar(&c.AccessUri, prefix+"client.access-uri", "", "The uri of wemq access")
 }

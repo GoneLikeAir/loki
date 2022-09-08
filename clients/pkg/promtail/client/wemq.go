@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/dskit/flagext"
 	"go.uber.org/atomic"
 	"io"
 	"math/rand"
@@ -30,26 +29,29 @@ var serverInfoPattern = "(?P<ip>.*?):(?P<port>.*?)#(?P<weight>.*?)\\|(?P<idc>.*)
 type AccessPicker struct {
 	logger log.Logger
 	sync.Mutex
-	CCAddress          flagext.URLValue
+	CCEndpoint []string
+	CCUri      string
+	//CCAddress          flagext.URLValue
 	idc                string
 	accessEndpointList []string
 	idx                *atomic.Int32
 	pattern            *regexp.Regexp
 }
 
-func NewAccessPicker(ccAddress flagext.URLValue, idc string, logger log.Logger) *AccessPicker {
+func NewAccessPicker(ccEndpoint, ccUri, idc string, logger log.Logger) *AccessPicker {
 	rand.Seed(time.Now().Unix())
 	ri := rand.Int31() % 100
 	ap := &AccessPicker{
-		logger:             log.With(logger, "component", "AccessPicker", "ccAddress", ccAddress),
-		CCAddress:          ccAddress,
+		logger:             log.With(logger, "component", "AccessPicker", "ccAddress", ccEndpoint),
+		CCEndpoint:         strings.Split(ccEndpoint, ","),
+		CCUri:              ccUri,
 		idc:                idc,
 		accessEndpointList: make([]string, 0),
 		idx:                atomic.NewInt32(ri),
 		pattern:            regexp.MustCompile(serverInfoPattern),
 	}
 	go ap.syncIp()
-	level.Info(logger).Log("component", "AccessPicker", "status", "new instance successfully", "cc-address", ccAddress, "idc", idc, "startIndex", ri)
+	level.Info(logger).Log("component", "AccessPicker", "status", "new instance successfully", "cc-endpoints", ccEndpoint, "idc", idc, "startIndex", ri)
 	return ap
 }
 
@@ -74,11 +76,26 @@ func (ap *AccessPicker) syncIp() {
 	}
 }
 
+func (ap *AccessPicker) getCCAddress(idx int) string {
+	if idx >= len(ap.CCEndpoint) {
+		idx = idx % len(ap.CCEndpoint)
+	}
+	return fmt.Sprintf("http://%s/%s", ap.CCEndpoint[idx], strings.TrimRight(ap.CCUri, "/"))
+}
+
 func (ap *AccessPicker) syncIpOnce() {
 	httpClient := &http.Client{}
-	response, err := httpClient.Get(ap.CCAddress.String())
+	var response *http.Response
+	var err error
+	for n := range ap.CCEndpoint {
+		ccAddress := ap.getCCAddress(n)
+		response, err = httpClient.Get(ccAddress)
+		if err != nil {
+			level.Warn(ap.logger).Log("getAccessServerResult", "failed", "ccAddress", ccAddress, "response", response)
+		}
+	}
 	if err != nil {
-		level.Warn(ap.logger).Log("getAccessServerResult", "failed", "response", response)
+		level.Warn(ap.logger).Log("getAccessServerResult", "failed", "reason", "all endpoint unavailable, sync access endpoint failed")
 		return
 	}
 

@@ -182,7 +182,7 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger lo
 	var accessPicker *AccessPicker
 	if cfg.SendToWeMQ {
 		level.Info(logger).Log("server", "wemq-access")
-		accessPicker = NewAccessPicker(cfg.CCAddress, cfg.IDC, logger)
+		accessPicker = NewAccessPicker(cfg.CCEndpoint, cfg.CCUri, cfg.IDC, logger)
 	}
 
 	c := &client{
@@ -234,8 +234,11 @@ func validateConfig(cfg Config) error {
 	if !cfg.SendToWeMQ {
 		return nil
 	}
-	if cfg.CCAddress.URL == nil {
-		return errors.New("client needs cc-address when sending data to wemq")
+	if cfg.CCEndpoint == "" {
+		return errors.New("client needs cc-endpoint when sending data to wemq")
+	}
+	if cfg.CCUri == "" {
+		return errors.New("client needs cc-uri when sending data to wemq")
 	}
 	if cfg.AccessUri == "" {
 		return errors.New("client needs access-path when sending data to wemq")
