@@ -71,7 +71,7 @@ func (ap *AccessPicker) syncIp() {
 	for {
 		select {
 		case <-tick.C:
-			ap.syncIpOnce()
+			ap.syncAccessEpOnce()
 		}
 	}
 }
@@ -80,19 +80,21 @@ func (ap *AccessPicker) getCCAddress(idx int) string {
 	if idx >= len(ap.CCEndpoint) {
 		idx = idx % len(ap.CCEndpoint)
 	}
-	return fmt.Sprintf("http://%s/%s", ap.CCEndpoint[idx], strings.TrimRight(ap.CCUri, "/"))
+	return fmt.Sprintf("http://%s/%s", ap.CCEndpoint[idx], strings.TrimLeft(ap.CCUri, "/"))
 }
 
-func (ap *AccessPicker) syncIpOnce() {
+func (ap *AccessPicker) syncAccessEpOnce() {
 	httpClient := &http.Client{}
 	var response *http.Response
 	var err error
 	for n := range ap.CCEndpoint {
 		ccAddress := ap.getCCAddress(n)
+		level.Info(ap.logger).Log("ccAddress", ccAddress)
 		response, err = httpClient.Get(ccAddress)
-		if err != nil {
-			level.Warn(ap.logger).Log("getAccessServerResult", "failed", "ccAddress", ccAddress, "response", response)
+		if err == nil {
+			break
 		}
+		level.Warn(ap.logger).Log("getAccessServerResult", "failed", "ccAddress", ccAddress, "response", response)
 	}
 	if err != nil {
 		level.Warn(ap.logger).Log("getAccessServerResult", "failed", "reason", "all endpoint unavailable, sync access endpoint failed")
@@ -124,6 +126,7 @@ func (ap *AccessPicker) syncIpOnce() {
 			continue
 		}
 		if ap.idc != "" {
+			level.Info(ap.logger).Log("function", "syncAccessEpOnce", "needFilterIdc", ap.idc)
 			if idc == ap.idc {
 				endpointList = append(endpointList, fmt.Sprintf("%s:%s", ip, port))
 			}
@@ -134,7 +137,7 @@ func (ap *AccessPicker) syncIpOnce() {
 	}
 	ap.Lock()
 	defer ap.Unlock()
-	level.Info(ap.logger).Log("function", "syncIpOnce", "result", endpointList)
+	level.Info(ap.logger).Log("function", "syncAccessEpOnce", "result", strings.Join(endpointList, ","))
 	ap.accessEndpointList = endpointList
 }
 
