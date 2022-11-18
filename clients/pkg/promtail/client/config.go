@@ -46,11 +46,11 @@ type Config struct {
 	TenantID string `yaml:"tenant_id"`
 
 	// WeMQ Access configs
-	SendToWeMQ bool   `yaml:"send_to_we_mq"`
-	IDC        string `yaml:"idc"`
-	CCEndpoint string `yaml:"cc_endpoint"`
-	CCUri      string `yaml:"cc_uri"`
-	AccessUri  string `yaml:"access_uri"`
+	SendToWeMQ bool   `yaml:"send_to_we_mq,omitempty"`
+	IDC        string `yaml:"idc,omitempty"`
+	CCEndpoint string `yaml:"cc_endpoint,omitempty"`
+	CCUri      string `yaml:"cc_uri,omitempty"`
+	AccessUri  string `yaml:"access_uri,omitempty"`
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by

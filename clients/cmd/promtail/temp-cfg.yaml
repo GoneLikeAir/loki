@@ -1,0 +1,26 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 9097
+  log_level: debug
+
+positions:
+  filename: /data/app/promtail/positions.yaml
+
+clients:
+  configs:
+  #  - url: http://172.21.8.13:3100/loki/api/v1/push
+  - url: http://172.21.8.20:12800/logging
+    send_to_we_mq: true 
+    cc_endpoint: 10.108.193.86:3003
+    cc_uri: /dynamicKey/v1/wemqAccessLogServer.json
+    idc: MW
+    access_uri: /eventmesh/publish/FT0-e-98330001-01-3
+
+scrape_configs:
+- job_name: promtail
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: promtail
+      __path__: /data/app/weService-1.4.0/logs/*.log

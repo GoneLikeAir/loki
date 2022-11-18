@@ -2,7 +2,10 @@ package log
 
 import (
 	"fmt"
+	"go.uber.org/atomic"
+	"net"
 	"os"
+	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -43,9 +46,34 @@ type prometheusLogger struct {
 // newPrometheusLogger creates a new instance of PrometheusLogger which exposes
 // Prometheus counters for various log levels.
 func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.Registerer) log.Logger {
-	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	//host, _ := os.Hostname()
+	addrs, _ := net.InterfaceAddrs()
+	ip := "unknownIP"
+	for _, address := range addrs {
+		// 检查ip地址判断是否回环地址
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				ip = ipnet.IP.String()
+			}
+		}
+	}
+	hook := &RollingLogger{
+		Filename:   fmt.Sprintf("/data/logs/wcs-logagent/wcs-logagent-%s.log", ip),
+		MaxAge:     30,
+		MaxBackups: 180,
+		MaxSize:    1000,
+		Compress:   true,
+		cursor:     atomic.NewInt32(0),
+		mu:         sync.Mutex{},
+		millCh:     make(chan bool),
+		startMill:  sync.Once{},
+	}
+	//f, _ := os.OpenFile("/logs/wcs-logagent/wcs-logagent.log", os.O_RDWR|os.O_CREATE, 0777)
+	//fileWriter := bufio.NewWriter(f)
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(hook))
 	if format.String() == "json" {
-		logger = log.NewJSONLogger(log.NewSyncWriter(os.Stderr))
+		//logger = log.NewJSONLogger(log.NewSyncWriter(os.Stderr))
+		logger = log.NewJSONLogger(log.NewSyncWriter(hook))
 	}
 	logger = level.NewFilter(logger, levelFilter(l.String()))
 
@@ -69,7 +97,7 @@ func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.
 	}
 
 	// return a Logger without caller information, shouldn't use directly
-	return log.With(plogger, "ts", log.DefaultTimestampUTC)
+	return log.With(plogger, "ts", log.DefaultTimestamp)
 }
 
 // Log increments the appropriate Prometheus counter depending on the log level.

@@ -180,13 +180,17 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger lo
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var accessPicker *AccessPicker
+	host := ""
 	if cfg.SendToWeMQ {
 		level.Info(logger).Log("server", "wemq-access")
 		accessPicker = NewAccessPicker(cfg.CCEndpoint, cfg.CCUri, cfg.IDC, logger)
+		host = "eventmesh"
+	} else {
+		host = cfg.URL.Host
 	}
 
 	c := &client{
-		logger:          log.With(logger, "component", "client", "host", cfg.URL.Host),
+		logger:          log.With(logger, "component", "client", "host", host),
 		cfg:             cfg,
 		entries:         make(chan api.Entry),
 		metrics:         metrics,

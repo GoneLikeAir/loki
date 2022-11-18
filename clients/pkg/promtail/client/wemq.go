@@ -43,7 +43,7 @@ func NewAccessPicker(ccEndpoint, ccUri, idc string, logger log.Logger) *AccessPi
 	ri := rand.Int31() % 100
 	ap := &AccessPicker{
 		logger:             log.With(logger, "component", "AccessPicker", "ccAddress", ccEndpoint),
-		CCEndpoint:         strings.Split(ccEndpoint, ","),
+		CCEndpoint:         strings.Split(ccEndpoint, ";"),
 		CCUri:              ccUri,
 		idc:                idc,
 		accessEndpointList: make([]string, 0),
@@ -80,7 +80,7 @@ func (ap *AccessPicker) getCCAddress(idx int) string {
 	if idx >= len(ap.CCEndpoint) {
 		idx = idx % len(ap.CCEndpoint)
 	}
-	return fmt.Sprintf("http://%s/%s", ap.CCEndpoint[idx], strings.TrimLeft(ap.CCUri, "/"))
+	return fmt.Sprintf("%s/%s", ap.CCEndpoint[idx], strings.TrimLeft(ap.CCUri, "/"))
 }
 
 func (ap *AccessPicker) syncAccessEpOnce() {
