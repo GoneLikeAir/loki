@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bmatcuk/doublestar"
 	"gopkg.in/fsnotify.v1"
@@ -47,9 +48,9 @@ type FileTargetManager struct {
 
 	watcher            *fsnotify.Watcher
 	targetEventHandler chan fileTargetEvent
+	latestTargetGroups map[string][]*targetgroup.Group
 
-	globSearcher *GlobSearcher
-	wg           sync.WaitGroup
+	wg sync.WaitGroup
 }
 
 // NewFileTargetManager creates a new TargetManager.
@@ -60,6 +61,7 @@ func NewFileTargetManager(
 	client api.EntryHandler,
 	scrapeConfigs []scrapeconfig.Config,
 	targetConfig *Config,
+	aclConfigPath string,
 ) (*FileTargetManager, error) {
 	reg := metrics.reg
 	if reg == nil {
@@ -72,13 +74,13 @@ func NewFileTargetManager(
 	}
 	ctx, quit := context.WithCancel(context.Background())
 	globSearcher := NewGlobSearcher(log.With(logger, "component", "glob_searcher"))
+	aclManager := NewACLManager(log.With(logger, "component", "acl_manger"), aclConfigPath)
 	tm := &FileTargetManager{
 		log:                logger,
 		quit:               quit,
 		watcher:            watcher,
 		targetEventHandler: make(chan fileTargetEvent),
 		syncers:            map[string]*targetSyncer{},
-		globSearcher:       globSearcher,
 		manager:            discovery.NewManager(ctx, log.With(logger, "component", "discovery")),
 	}
 
@@ -135,6 +137,7 @@ func NewFileTargetManager(
 			targetConfig:      targetConfig,
 			fileEventWatchers: map[string]chan fsnotify.Event{},
 			globSearcher:      globSearcher,
+			aclManager:        aclManager,
 		}
 		tm.syncers[cfg.JobName] = s
 		configs[cfg.JobName] = cfg.ServiceDiscoveryConfig.Configs()
@@ -195,12 +198,19 @@ func (tm *FileTargetManager) watchFsEvents(ctx context.Context) {
 
 func (tm *FileTargetManager) run(ctx context.Context) {
 	defer tm.wg.Done()
-
+	ticker := time.NewTicker(time.Minute * 15)
 	for {
 		select {
 		case targetGroups := <-tm.manager.SyncCh():
+			tm.latestTargetGroups = targetGroups
 			for jobName, groups := range targetGroups {
 				tm.syncers[jobName].sync(groups, tm.targetEventHandler)
+			}
+		case <-ticker.C:
+			if tm.latestTargetGroups != nil {
+				for jobName, groups := range tm.latestTargetGroups {
+					tm.syncers[jobName].sync(groups, tm.targetEventHandler)
+				}
 			}
 		case <-ctx.Done():
 			return
@@ -267,6 +277,7 @@ type targetSyncer struct {
 	targetConfig  *Config
 
 	globSearcher *GlobSearcher
+	aclManager   *ACLManager
 }
 
 // sync synchronize target based on received target groups received by service discovery
@@ -318,25 +329,38 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				continue
 			}
 
-			excludedPaths := make([]string, 0)
-			ep, ok := labels[excludedPathLabel]
-			if ok {
-				excludedPaths = strings.Split(string(ep), ";")
-			}
-
-			suffixFilters := make([]string, 0)
-			pf, ok := labels[suffixFilterLabel]
-			if ok {
-				suffixFilters = strings.Split(string(pf), ";")
-			}
+			//excludedPaths := make([]string, 0)
+			//ep, ok := labels[excludedPathLabel]
+			//if ok {
+			//	excludedPaths = strings.Split(string(ep), ";")
+			//}
+			//
+			//suffixFilters := make([]string, 0)
+			//pf, ok := labels[suffixFilterLabel]
+			//if ok {
+			//	suffixFilters = strings.Split(string(pf), ";")
+			//}
 
 			for k := range labels {
 				if strings.HasPrefix(string(k), "__") {
 					delete(labels, k)
 				}
 			}
-
 			key := fmt.Sprintf("%s:%s", path, labels.String())
+
+			if !s.aclManager.IsAllow(labels) {
+				//if t, ok := s.targets[key]; ok {
+				//	t.Stop()
+				//	delete(s.targets, key)
+				//}
+				dropped = append(dropped, target.NewDroppedTarget(fmt.Sprintf("ignoring target, ACL checking failed(labels:%s hostname:%s)", labels.String(), s.hostname), discoveredLabels))
+				level.Debug(s.log).Log("msg", "ignoring target, ACL checking failed", "labels", labels.String(), "hostname", s.hostname)
+				s.metrics.failedTargets.WithLabelValues("acl_check_failed").Inc()
+				continue
+			}
+
+			filterOption := s.aclManager.GetFilterOption(labels)
+
 			targets[key] = struct{}{}
 			if _, ok := s.targets[key]; ok {
 				dropped = append(dropped, target.NewDroppedTarget("ignoring target, already exists", discoveredLabels))
@@ -353,7 +377,7 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				watcher = make(chan fsnotify.Event)
 				s.fileEventWatchers[wkey] = watcher
 			}
-			t, err := s.newTarget(wkey, excludedPaths, suffixFilters, labels, discoveredLabels, watcher, targetEventHandler, s.globSearcher)
+			t, err := s.newTarget(wkey, filterOption.ExcludePath, filterOption.Suffix, labels, discoveredLabels, watcher, targetEventHandler, s.globSearcher)
 			if err != nil {
 				dropped = append(dropped, target.NewDroppedTarget(fmt.Sprintf("Failed to create target: %s", err.Error()), discoveredLabels))
 				level.Error(s.log).Log("msg", "Failed to create target", "key", key, "error", err)

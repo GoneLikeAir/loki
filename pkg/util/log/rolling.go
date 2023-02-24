@@ -256,7 +256,8 @@ func (l *RollingLogger) backupName(name string) string {
 	ext := filepath.Ext(filename)
 	prefix := filename[:len(filename)-len(ext)]
 	newFileName := ""
-	timeStr := l.lastTime.Format(backupTimeFormat)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	timeStr := l.lastTime.In(loc).Format(backupTimeFormat)
 	newFileName = fmt.Sprintf("%s.%s.%d%s", prefix, timeStr, l.cursor.Load(), ext)
 	l.cursor.Add(1)
 	return filepath.Join(dir, newFileName)

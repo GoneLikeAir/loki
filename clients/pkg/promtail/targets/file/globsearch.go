@@ -5,6 +5,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"math/rand"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -71,10 +72,25 @@ func (s *GlobSearcher) searchTask() {
 			mr.matches, mr.err = doublestar.Glob(taskInfo.Path)
 			mr.matches, mr.err = s.dropExcludedPath(mr.matches, taskInfo.ExcludePath)
 			mr.matches = s.filterSuffix(mr.matches, taskInfo.SuffixFilter)
+			mr.matches = s.dropNoUpdatePath(mr.matches, time.Minute*30)
 			s.result.Store(taskInfo.Path, mr)
 			s.inProcess.Delete(taskInfo.Path)
 		}
 	}
+}
+
+func (s *GlobSearcher) dropNoUpdatePath(matched []string, period time.Duration) []string {
+	newMatches := make([]string, 0)
+	for _, p := range matched {
+		fInfo, err := os.Stat(p)
+		if err != nil {
+			continue
+		}
+		if fInfo.ModTime().Add(period).After(time.Now()) {
+			newMatches = append(newMatches, p)
+		}
+	}
+	return newMatches
 }
 
 func (s *GlobSearcher) dropExcludedPath(matches, excludePath []string) ([]string, error) {

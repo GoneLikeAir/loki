@@ -51,6 +51,7 @@ type Config struct {
 	ExternalURL       string `yaml:"external_url"`
 	HealthCheckTarget *bool  `yaml:"health_check_target"`
 	Disable           bool   `yaml:"disable"`
+	ACLFilepath       string `yaml:"acl_filepath,omitempty"`
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by
@@ -60,6 +61,7 @@ func (cfg *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	cfg.Config.RegisterFlags(f)
 
 	f.BoolVar(&cfg.Disable, prefix+"server.disable", false, "Disable the http and grpc server.")
+	f.StringVar(&cfg.ACLFilepath, prefix+"server.acl-filepath", "", "the path of acl config file")
 }
 
 // RegisterFlags adds the flags required to config this to the given FlagSet

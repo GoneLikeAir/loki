@@ -126,7 +126,21 @@ func (p *positions) Get(path string) (int64, error) {
 	defer p.mtx.Unlock()
 	pos, ok := p.positions[path]
 	if !ok {
-		return 0, nil
+		fi, err := os.Stat(path)
+		if err == nil {
+			level.Info(p.logger).Log("getPosition", path, "fileSize", fi.Size())
+			var offset int64
+			if fi.Size() < 1024*1024 {
+				offset = 0
+			} else {
+				offset = fi.Size() - 1024*1024
+			}
+			level.Info(p.logger).Log("getPosition", path, "offset", offset)
+			return offset, nil
+		} else {
+			return 0, nil
+		}
+
 	}
 	return strconv.ParseInt(pos, 10, 64)
 }

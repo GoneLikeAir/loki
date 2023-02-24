@@ -80,7 +80,7 @@ func New(cfg config.Config, metrics *client.Metrics, dryRun bool, opts ...Option
 		}
 	}
 
-	tms, err := targets.NewTargetManagers(promtail, promtail.reg, promtail.logger, cfg.PositionsConfig, promtail.client, cfg.ScrapeConfig, &cfg.TargetConfig)
+	tms, err := targets.NewTargetManagers(promtail, promtail.reg, promtail.logger, cfg.PositionsConfig, promtail.client, cfg.ScrapeConfig, &cfg.TargetConfig, cfg.ServerConfig.ACLFilepath)
 	if err != nil {
 		return nil, err
 	}

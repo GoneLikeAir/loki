@@ -2,17 +2,17 @@ package log
 
 import (
 	"fmt"
-	"go.uber.org/atomic"
-	"net"
-	"os"
-	"sync"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
+	"go.uber.org/atomic"
+	"net"
+	"os"
+	"sync"
+	"time"
 )
 
 var (
@@ -67,6 +67,7 @@ func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.
 		mu:         sync.Mutex{},
 		millCh:     make(chan bool),
 		startMill:  sync.Once{},
+		lastTime:   time.Now(),
 	}
 	//f, _ := os.OpenFile("/logs/wcs-logagent/wcs-logagent.log", os.O_RDWR|os.O_CREATE, 0777)
 	//fileWriter := bufio.NewWriter(f)
@@ -97,7 +98,11 @@ func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.
 	}
 
 	// return a Logger without caller information, shouldn't use directly
-	return log.With(plogger, "ts", log.DefaultTimestamp)
+	f := func() time.Time {
+		loc, _ := time.LoadLocation("Asia/Shanghai")
+		return time.Now().In(loc)
+	}
+	return log.With(plogger, "ts", log.TimestampFormat(f, time.RFC3339Nano))
 }
 
 // Log increments the appropriate Prometheus counter depending on the log level.

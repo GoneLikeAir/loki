@@ -61,6 +61,7 @@ func NewTargetManagers(
 	client api.EntryHandler,
 	scrapeConfigs []scrapeconfig.Config,
 	targetConfig *file.Config,
+	aclConfigFilepath string,
 ) (*TargetManagers, error) {
 	if targetConfig.Stdin {
 		level.Debug(logger).Log("msg", "configured to read from stdin")
@@ -156,6 +157,7 @@ func NewTargetManagers(
 				client,
 				scrapeConfigs,
 				targetConfig,
+				aclConfigFilepath,
 			)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to make file target manager")

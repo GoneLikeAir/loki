@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -71,6 +72,11 @@ func NewEntryMutatorHandler(next EntryHandler, f EntryMutatorFunc) EntryHandler 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Printf("recover from unknown err, err=%s\n", err)
+			}
+		}()
 		for e := range in {
 			nextChan <- f(e)
 		}
