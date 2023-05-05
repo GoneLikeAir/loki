@@ -4,9 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/go-kit/log"
@@ -71,12 +69,11 @@ type FileTarget struct {
 	targetEventHandler chan fileTargetEvent
 	watches            map[string]struct{}
 	path               string
-	excludePath        []string
-	suffixFilter       []string
 	quit               chan struct{}
 	done               chan struct{}
 
-	globSearcher *GlobSearcher
+	globSearcher        *GlobSearcher
+	getFilterOptionFunc func(labels model.LabelSet) FilterCase
 
 	tails map[string]*tailer
 
@@ -90,8 +87,7 @@ func NewFileTarget(
 	handler api.EntryHandler,
 	positions positions.Positions,
 	path string,
-	excludePath []string,
-	suffixFilter []string,
+	getFilterOptionFunc func(labels model.LabelSet) FilterCase,
 	labels model.LabelSet,
 	discoveredLabels model.LabelSet,
 	targetConfig *Config,
@@ -100,22 +96,21 @@ func NewFileTarget(
 	globSearcher *GlobSearcher,
 ) (*FileTarget, error) {
 	t := &FileTarget{
-		logger:             logger,
-		metrics:            metrics,
-		path:               path,
-		excludePath:        excludePath,
-		suffixFilter:       suffixFilter,
-		labels:             labels,
-		discoveredLabels:   discoveredLabels,
-		handler:            api.AddLabelsMiddleware(labels).Wrap(handler),
-		positions:          positions,
-		quit:               make(chan struct{}),
-		done:               make(chan struct{}),
-		tails:              map[string]*tailer{},
-		targetConfig:       targetConfig,
-		fileEventWatcher:   fileEventWatcher,
-		targetEventHandler: targetEventHandler,
-		globSearcher:       globSearcher,
+		logger:              logger,
+		metrics:             metrics,
+		path:                path,
+		getFilterOptionFunc: getFilterOptionFunc,
+		labels:              labels,
+		discoveredLabels:    discoveredLabels,
+		handler:             api.AddLabelsMiddleware(labels).Wrap(handler),
+		positions:           positions,
+		quit:                make(chan struct{}),
+		done:                make(chan struct{}),
+		tails:               map[string]*tailer{},
+		targetConfig:        targetConfig,
+		fileEventWatcher:    fileEventWatcher,
+		targetEventHandler:  targetEventHandler,
+		globSearcher:        globSearcher,
 	}
 
 	go t.run()
@@ -202,7 +197,8 @@ func (t *FileTarget) sync() error {
 		matches = []string{t.path}
 	} else {
 		// Gets current list of files to tail.
-		matches, err = t.globSearcher.Search(t.path, t.excludePath, t.suffixFilter)
+		filterOption := t.getFilterOptionFunc(t.labels)
+		matches, err = t.globSearcher.Search(t.path, filterOption.ExcludePath, filterOption.Suffix)
 		level.Debug(t.logger).Log("path", t.path, "match len", len(matches))
 		level.Debug(t.logger).Log("match path", fmt.Sprintf("%v", matches))
 		//matches, err = doublestar.Glob(t.path)
@@ -268,63 +264,6 @@ func (t *FileTarget) sync() error {
 	t.stopTailingAndRemovePosition(toStopTailing)
 
 	return nil
-}
-
-func (t *FileTarget) dropExcludedPath(matches []string) ([]string, error) {
-	level.Debug(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "start time", time.Now().String())
-	//needExclude := make(map[string]string)
-	afterExcludeMatches := make([]string, 0)
-	for _, m := range matches {
-		keep := true
-		for _, ep := range t.excludePath {
-			if matched, err := path.Match(ep, m); err == nil && matched {
-				keep = false
-				break
-			}
-		}
-		if keep {
-			afterExcludeMatches = append(afterExcludeMatches, m)
-		}
-	}
-
-	//for _, ep := range t.excludePath {
-	//	ms, err := doublestar.Glob(ep)
-	//	if err != nil {
-	//		return nil, errors.Wrap(err, "filetarget.sync.excludePath.Glob")
-	//	}
-	//	for _, p := range ms {
-	//		needExclude[p] = "ok"
-	//	}
-	//}
-	//level.Info(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "start time", time.Now().String())
-	//
-	//finalMatchs := make([]string, 0)
-	//for _, m := range matches {
-	//	if _, ok := needExclude[m]; !ok {
-	//		finalMatchs = append(finalMatchs, m)
-	//	}
-	//}
-	level.Debug(t.logger).Log("func", "dropExcludedPath", "targetPath", t.path, "end time", time.Now().String())
-	return afterExcludeMatches, nil
-}
-
-func (t *FileTarget) filterSuffix(matches []string) []string {
-	level.Debug(t.logger).Log("filterSuffix", "targetPath", t.path, "start time", time.Now().String())
-	if t.suffixFilter == nil || len(t.suffixFilter) == 0 {
-		return matches
-	}
-	filteredPaths := make([]string, 0)
-
-	for _, p := range matches {
-		for _, suffix := range t.suffixFilter {
-			if strings.HasSuffix(p, suffix) {
-				filteredPaths = append(filteredPaths, p)
-				break
-			}
-		}
-	}
-	level.Debug(t.logger).Log("filterSuffix", "targetPath", t.path, "start time", time.Now().String())
-	return filteredPaths
 }
 
 func (t *FileTarget) startWatching(dirs map[string]struct{}) {

@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
 	"io/ioutil"
+	"reflect"
 	"regexp"
 	"sync"
 	"time"
@@ -71,9 +72,14 @@ func (m *ACLManager) syncOnce() {
 		level.Warn(m.logger).Log("msg", "invalid acl file format", "err", err.Error())
 		return
 	}
+	if reflect.DeepEqual(cfg, m.cfg) {
+		return
+	}
+	level.Info(m.logger).Log("msg", "acl config file updated, need to reload", "newAcl", string(b))
 	m.mux.Lock()
-	defer m.mux.Unlock()
 	m.cfg = &cfg
+	m.mux.Unlock()
+	level.Info(m.logger).Log("msg", "acl config reload complete")
 }
 
 func (m *ACLManager) IsAllow(labels model.LabelSet) bool {
@@ -98,6 +104,8 @@ func (m *ACLManager) IsAllow(labels model.LabelSet) bool {
 }
 
 func (m *ACLManager) GetFilterOption(labels model.LabelSet) FilterCase {
+	cfg, _ := json.Marshal(m.cfg)
+	level.Debug(m.logger).Log("msg", "getting filter", "cfs", string(cfg))
 	for _, f := range m.cfg.FilterOptions {
 		if v, ok := labels[model.LabelName(f.Key)]; ok {
 			matched, err := regexp.MatchString(f.Value, string(v))

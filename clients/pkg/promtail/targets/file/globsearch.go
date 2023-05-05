@@ -1,6 +1,7 @@
 package file
 
 import (
+	"encoding/json"
 	"github.com/bmatcuk/doublestar"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -44,6 +45,9 @@ type taskInfo struct {
 func (s *GlobSearcher) Search(path string, ExcludePath []string, SuffixFilter []string) ([]string, error) {
 	if _, ok := s.inProcess.Load(path); !ok {
 		level.Debug(s.logger).Log("notInProcess", path, "operator", "add to task queue")
+		expath, _ := json.Marshal(ExcludePath)
+		suffixStr, _ := json.Marshal(SuffixFilter)
+		level.Debug(s.logger).Log("ExcludePath", string(expath), "SuffixFilter", string(suffixStr))
 		s.inProcess.Store(path, taskInfo{
 			ExcludePath:  ExcludePath,
 			SuffixFilter: SuffixFilter,

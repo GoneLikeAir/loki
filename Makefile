@@ -203,7 +203,7 @@ $(PROMTAIL_GENERATED_FILE): $(PROMTAIL_UI_FILES)
 	GOOS=$(shell go env GOHOSTOS) go generate -x -v ./clients/pkg/promtail/server/ui
 
 clients/cmd/promtail/promtail:
-	CGO_ENABLED=$(PROMTAIL_CGO) go build $(PROMTAIL_GO_FLAGS) -o $@ ./$(@D)
+	CGO_ENABLED=$(PROMTAIL_CGO) GO111MODULE=on GOPROXY=https://goproxy.cn go build $(PROMTAIL_GO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 clients/cmd/promtail/promtail-debug:
@@ -249,7 +249,7 @@ publish: packages
 # To run this efficiently on your workstation, run this from the root dir:
 # docker run --rm --tty -i -v $(pwd)/.cache:/go/cache -v $(pwd)/.pkg:/go/pkg -v $(pwd):/src/loki grafana/loki-build-image:0.17.0 lint
 lint:
-	GO111MODULE=on GOGC=10 golangci-lint run -v
+	GO111MODULE=on GOPROXY=https://goproxy.cn GOGC=10 golangci-lint run -v
 	faillint -paths "sync/atomic=go.uber.org/atomic" ./...
 
 ########
@@ -278,6 +278,7 @@ clean:
 	rm -rf clients/cmd/fluent-bit/out_grafana_loki.h
 	rm -rf clients/cmd/fluent-bit/out_grafana_loki.so
 	rm -rf cmd/migrate/migrate
+	go env -w GOPROXY=https://goproxy.cn
 	go clean ./...
 
 #########
@@ -584,10 +585,10 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 		-v $(shell pwd):/src/loki$(MOUNT_FLAGS) \
 		$(IMAGE_PREFIX)/loki-build-image:$(BUILD_IMAGE_VERSION) $@;
 else
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod download
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod verify
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod tidy
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
+	GO111MODULE=on GOPROXY=https://goproxy.cn go mod download
+	GO111MODULE=on GOPROXY=https://goproxy.cn go mod verify
+	GO111MODULE=on GOPROXY=https://goproxy.cn go mod tidy
+	GO111MODULE=on GOPROXY=https://goproxy.cn go mod vendor
 endif
 	@git diff --exit-code -- go.sum go.mod vendor/
 
