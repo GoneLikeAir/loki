@@ -17,7 +17,7 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logqlmodel"
 	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/config"
 	util_log "github.com/grafana/loki/pkg/util/log"
 	"github.com/grafana/loki/pkg/util/marshal"
 )
@@ -43,7 +43,7 @@ func TestLimits(t *testing.T) {
 	require.Equal(
 		t,
 		fmt.Sprintf("%s:%s:%d:%d:%d", "a", r.GetQuery(), r.GetStep(), r.GetStart()/int64(time.Hour/time.Millisecond), int64(time.Hour)),
-		cacheKeyLimits{wrapped}.GenerateCacheKey("a", r),
+		cacheKeyLimits{wrapped, nil}.GenerateCacheKey(context.Background(), "a", r),
 	)
 }
 
@@ -52,7 +52,7 @@ func Test_seriesLimiter(t *testing.T) {
 	cfg.CacheResults = false
 	// split in 7 with 2 in // max.
 	l := WithSplitByLimits(fakeLimits{maxSeries: 1, maxQueryParallelism: 2}, time.Hour)
-	tpw, stopper, err := NewTripperware(cfg, util_log.Logger, l, chunk.SchemaConfig{}, nil)
+	tpw, stopper, err := NewTripperware(cfg, util_log.Logger, l, config.SchemaConfig{}, nil, false, nil)
 	if stopper != nil {
 		defer stopper.Stop()
 	}
@@ -237,7 +237,7 @@ func Test_MaxQueryLookBack(t *testing.T) {
 	tpw, stopper, err := NewTripperware(testConfig, util_log.Logger, fakeLimits{
 		maxQueryLookback:    1 * time.Hour,
 		maxQueryParallelism: 1,
-	}, chunk.SchemaConfig{}, nil)
+	}, config.SchemaConfig{}, nil, false, nil)
 	if stopper != nil {
 		defer stopper.Stop()
 	}
@@ -268,7 +268,7 @@ func Test_MaxQueryLookBack(t *testing.T) {
 }
 
 func Test_GenerateCacheKey_NoDivideZero(t *testing.T) {
-	l := cacheKeyLimits{WithSplitByLimits(nil, 0)}
+	l := cacheKeyLimits{WithSplitByLimits(nil, 0), nil}
 	start := time.Now()
 	r := &LokiRequest{
 		Query:   "qry",
@@ -279,7 +279,6 @@ func Test_GenerateCacheKey_NoDivideZero(t *testing.T) {
 	require.Equal(
 		t,
 		fmt.Sprintf("foo:qry:%d:0:0", r.GetStep()),
-		l.GenerateCacheKey("foo", r),
+		l.GenerateCacheKey(context.Background(), "foo", r),
 	)
-
 }

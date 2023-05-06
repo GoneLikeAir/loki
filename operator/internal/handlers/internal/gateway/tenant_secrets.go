@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ViaQ/logerr/kverrors"
+	"github.com/ViaQ/logerr/v2/kverrors"
 
-	lokiv1beta1 "github.com/grafana/loki/operator/api/v1beta1"
+	lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
 	"github.com/grafana/loki/operator/internal/external/k8s"
-	"github.com/grafana/loki/operator/internal/handlers/internal/secrets"
 	"github.com/grafana/loki/operator/internal/manifests"
 	"github.com/grafana/loki/operator/internal/status"
 
@@ -20,13 +19,13 @@ import (
 
 // GetTenantSecrets returns the list to gateway tenant secrets for a tenant mode.
 // For modes static and dynamic the secrets are fetched from external provided
-// secrets. For mode openshift-logging a secret per default tenants are created.
+// secrets. For modes openshift-logging and openshift-network a secret per default tenants are created.
 // All secrets live in the same namespace as the lokistack request.
 func GetTenantSecrets(
 	ctx context.Context,
 	k k8s.Client,
 	req ctrl.Request,
-	stack *lokiv1beta1.LokiStack,
+	stack *lokiv1.LokiStack,
 ) ([]*manifests.TenantSecrets, error) {
 	var (
 		tenantSecrets []*manifests.TenantSecrets
@@ -37,35 +36,45 @@ func GetTenantSecrets(
 		key := client.ObjectKey{Name: tenant.OIDC.Secret.Name, Namespace: req.Namespace}
 		if err := k.Get(ctx, key, &gatewaySecret); err != nil {
 			if apierrors.IsNotFound(err) {
-				statusErr := status.SetDegradedCondition(ctx, k, req,
-					fmt.Sprintf("Missing secrets for tenant %s", tenant.TenantName),
-					lokiv1beta1.ReasonMissingGatewayTenantSecret,
-				)
-				if statusErr != nil {
-					return nil, statusErr
+				return nil, &status.DegradedError{
+					Message: fmt.Sprintf("Missing secrets for tenant %s", tenant.TenantName),
+					Reason:  lokiv1.ReasonMissingGatewayTenantSecret,
+					Requeue: true,
 				}
-
-				return nil, kverrors.Wrap(err, "Missing gateway secrets")
 			}
 			return nil, kverrors.Wrap(err, "failed to lookup lokistack gateway tenant secret",
 				"name", key)
 		}
 
 		var ts *manifests.TenantSecrets
-		ts, err := secrets.ExtractGatewaySecret(&gatewaySecret, tenant.TenantName)
+		ts, err := extractSecret(&gatewaySecret, tenant.TenantName)
 		if err != nil {
-			statusErr := status.SetDegradedCondition(ctx, k, req,
-				"Invalid gateway tenant secret contents",
-				lokiv1beta1.ReasonInvalidGatewayTenantSecret,
-			)
-			if statusErr != nil {
-				return nil, statusErr
+			return nil, &status.DegradedError{
+				Message: "Invalid gateway tenant secret contents",
+				Reason:  lokiv1.ReasonInvalidGatewayTenantSecret,
+				Requeue: true,
 			}
-
-			return nil, kverrors.Wrap(err, "Invalid gateway tenant secret")
 		}
 		tenantSecrets = append(tenantSecrets, ts)
 	}
 
 	return tenantSecrets, nil
+}
+
+// extractSecret reads a k8s secret into a manifest tenant secret struct if valid.
+func extractSecret(s *corev1.Secret, tenantName string) (*manifests.TenantSecrets, error) {
+	// Extract and validate mandatory fields
+	clientID := s.Data["clientID"]
+	if len(clientID) == 0 {
+		return nil, kverrors.New("missing clientID field", "field", "clientID")
+	}
+	clientSecret := s.Data["clientSecret"]
+	issuerCAPath := s.Data["issuerCAPath"]
+
+	return &manifests.TenantSecrets{
+		TenantName:   tenantName,
+		ClientID:     string(clientID),
+		ClientSecret: string(clientSecret),
+		IssuerCAPath: string(issuerCAPath),
+	}, nil
 }

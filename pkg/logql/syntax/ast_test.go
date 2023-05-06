@@ -1,7 +1,9 @@
 package syntax
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql"
@@ -70,6 +72,7 @@ func Test_SampleExpr_String(t *testing.T) {
 		`rate( ( {job="mysql"} |="error" !="timeout" ) [10s] )`,
 		`absent_over_time( ( {job="mysql"} |="error" !="timeout" ) [10s] )`,
 		`absent_over_time( ( {job="mysql"} |="error" !="timeout" ) [10s] offset 10d )`,
+		`vector(123)`,
 		`sum without(a) ( rate ( ( {job="mysql"} |="error" !="timeout" ) [10s] ) )`,
 		`sum by(a) (rate( ( {job="mysql"} |="error" !="timeout" ) [10s] ) )`,
 		`sum(count_over_time({job="mysql"}[5m]))`,
@@ -150,6 +153,7 @@ func Test_SampleExpr_String(t *testing.T) {
 		)
 		`,
 		`10 / (5/2)`,
+		`(count_over_time({job="postgres"}[5m])/2) or vector(2)`,
 		`10 / (count_over_time({job="postgres"}[5m])/2)`,
 		`{app="foo"} | json response_status="response.status.code", first_param="request.params[0]"`,
 		`label_replace(
@@ -166,6 +170,12 @@ func Test_SampleExpr_String(t *testing.T) {
 			"(.*):.*"
 		)
 		`,
+		`(((
+			sum by(typename,pool,commandname,colo)(sum_over_time({_namespace_="appspace", _schema_="appspace-1min", pool=~"r1testlvs", colo=~"slc|lvs|rno", env!~"(pre-production|sandbox)"} | logfmt | status!="0" | ( ( type=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" or typename=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) or status=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) | commandname=~"(?i).*|UNSET" | unwrap sumcount[5m])) / 60) 
+				or on ()  
+				((sum by(typename,pool,commandname,colo)(sum_over_time({_namespace_="appspace", _schema_="appspace-15min", pool=~"r1testlvs", colo=~"slc|lvs|rno", env!~"(pre-production|sandbox)"} | logfmt | status!="0" | ( ( type=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" or typename=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) or status=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) | commandname=~"(?i).*|UNSET" | unwrap sumcount[5m])) / 15) / 60)) 
+				or on ()  
+				((sum by(typename,pool,commandname,colo) (sum_over_time({_namespace_="appspace", _schema_="appspace-1h", pool=~"r1testlvs", colo=~"slc|lvs|rno", env!~"(pre-production|sandbox)"} | logfmt | status!="0" | ( ( type=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" or typename=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) or status=~"(?i)^(Error|Exception|Fatal|ERRPAGE|ValidationError)$" ) | commandname=~"(?i).*|UNSET" | unwrap sumcount[5m])) / 60) / 60))`,
 	} {
 		t.Run(tc, func(t *testing.T) {
 			expr, err := ParseExpr(tc)
@@ -174,6 +184,64 @@ func Test_SampleExpr_String(t *testing.T) {
 			expr2, err := ParseExpr(expr.String())
 			require.Nil(t, err)
 			require.Equal(t, expr, expr2)
+		})
+	}
+}
+
+func Test_SampleExpr_String_Fail(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []string{
+		`topk(0, sum(rate({region="us-east1"}[5m])) by (name))`,
+		`topk by (name)(0,sum(rate({region="us-east1"}[5m])))`,
+		`bottomk(0, sum(rate({region="us-east1"}[5m])) by (name))`,
+		`bottomk by (name)(0,sum(rate({region="us-east1"}[5m])))`,
+	} {
+		t.Run(tc, func(t *testing.T) {
+			_, err := ParseExpr(tc)
+			require.ErrorContains(t, err, "parse error : invalid parameter (must be greater than 0)")
+		})
+	}
+}
+
+func TestMatcherGroups(t *testing.T) {
+	for i, tc := range []struct {
+		query string
+		exp   []MatcherRange
+	}{
+		{
+			query: `{job="foo"}`,
+			exp: []MatcherRange{
+				{
+					Matchers: []*labels.Matcher{
+						labels.MustNewMatcher(labels.MatchEqual, "job", "foo"),
+					},
+				},
+			},
+		},
+		{
+			query: `count_over_time({job="foo"}[5m]) / count_over_time({job="bar"}[5m] offset 10m)`,
+			exp: []MatcherRange{
+				{
+					Interval: 5 * time.Minute,
+					Matchers: []*labels.Matcher{
+						labels.MustNewMatcher(labels.MatchEqual, "job", "foo"),
+					},
+				},
+				{
+					Interval: 5 * time.Minute,
+					Offset:   10 * time.Minute,
+					Matchers: []*labels.Matcher{
+						labels.MustNewMatcher(labels.MatchEqual, "job", "bar"),
+					},
+				},
+			},
+		},
+	} {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			expr, err := ParseExpr(tc.query)
+			require.Nil(t, err)
+			out := MatcherGroups(expr)
+			require.Equal(t, tc.exp, out)
 		})
 	}
 }
@@ -193,9 +261,9 @@ func Test_NilFilterDoesntPanic(t *testing.T) {
 
 			p, err := expr.Pipeline()
 			require.Nil(t, err)
-			_, _, ok := p.ForStream(labelBar).Process([]byte("bleepbloop"))
+			_, _, matches := p.ForStream(labelBar).Process(0, []byte("bleepbloop"))
 
-			require.True(t, ok)
+			require.True(t, matches)
 		})
 	}
 }
@@ -287,8 +355,8 @@ func Test_FilterMatcher(t *testing.T) {
 			} else {
 				sp := p.ForStream(labelBar)
 				for _, lc := range tt.lines {
-					_, _, ok := sp.Process([]byte(lc.l))
-					assert.Equalf(t, lc.e, ok, "query for line '%s' was %v and not %v", lc.l, ok, lc.e)
+					_, _, matches := sp.Process(0, []byte(lc.l))
+					assert.Equalf(t, lc.e, matches, "query for line '%s' was %v and not %v", lc.l, matches, lc.e)
 				}
 			}
 		})
@@ -392,7 +460,7 @@ func BenchmarkContainsFilter(b *testing.B) {
 			sp := p.ForStream(labelBar)
 			for i := 0; i < b.N; i++ {
 				for _, line := range lines {
-					sp.Process(line)
+					sp.Process(0, line)
 				}
 			}
 		})
@@ -401,26 +469,30 @@ func BenchmarkContainsFilter(b *testing.B) {
 
 func Test_parserExpr_Parser(t *testing.T) {
 	tests := []struct {
-		name    string
-		op      string
-		param   string
-		want    log.Stage
-		wantErr bool
+		name      string
+		op        string
+		param     string
+		want      log.Stage
+		wantErr   bool
+		wantPanic bool
 	}{
-		{"json", OpParserTypeJSON, "", log.NewJSONParser(), false},
-		{"unpack", OpParserTypeUnpack, "", log.NewUnpackParser(), false},
-		{"logfmt", OpParserTypeLogfmt, "", log.NewLogfmtParser(), false},
-		{"pattern", OpParserTypePattern, "<foo> bar <buzz>", mustNewPatternParser("<foo> bar <buzz>"), false},
-		{"pattern err", OpParserTypePattern, "bar", nil, true},
-		{"regexp", OpParserTypeRegexp, "(?P<foo>foo)", mustNewRegexParser("(?P<foo>foo)"), false},
-		{"regexp err ", OpParserTypeRegexp, "foo", nil, true},
+		{"json", OpParserTypeJSON, "", log.NewJSONParser(), false, false},
+		{"unpack", OpParserTypeUnpack, "", log.NewUnpackParser(), false, false},
+		{"logfmt", OpParserTypeLogfmt, "", log.NewLogfmtParser(), false, false},
+		{"pattern", OpParserTypePattern, "<foo> bar <buzz>", mustNewPatternParser("<foo> bar <buzz>"), false, false},
+		{"pattern err", OpParserTypePattern, "bar", nil, true, true},
+		{"regexp", OpParserTypeRegexp, "(?P<foo>foo)", mustNewRegexParser("(?P<foo>foo)"), false, false},
+		{"regexp err ", OpParserTypeRegexp, "foo", nil, true, true},
+		{"unknown op", "DummyOp", "", nil, true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &LabelParserExpr{
-				Op:    tt.op,
-				Param: tt.param,
+			var e *LabelParserExpr
+			if tt.wantPanic {
+				require.Panics(t, func() { e = newLabelParserExpr(tt.op, tt.param) })
+				return
 			}
+			e = newLabelParserExpr(tt.op, tt.param)
 			got, err := e.Stage()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parserExpr.Parser() error = %v, wantErr %v", err, tt.wantErr)
@@ -431,6 +503,32 @@ func Test_parserExpr_Parser(t *testing.T) {
 			} else {
 				require.Equal(t, tt.want, got)
 			}
+		})
+	}
+}
+
+func Test_parserExpr_String(t *testing.T) {
+	tests := []struct {
+		name  string
+		op    string
+		param string
+		want  string
+	}{
+		{"valid regexp", OpParserTypeRegexp, "foo", `| regexp "foo"`},
+		{"empty regexp", OpParserTypeRegexp, "", `| regexp ""`},
+		{"valid pattern", OpParserTypePattern, "buzz", `| pattern "buzz"`},
+		{"empty pattern", OpParserTypePattern, "", `| pattern ""`},
+		{"valid logfmt", OpParserTypeLogfmt, "", `| logfmt`},
+		{"valid json", OpParserTypeJSON, "", `| json`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := LabelParserExpr{
+				Op:    tt.op,
+				Param: tt.param,
+			}
+			require.Equal(t, tt.want, l.String())
 		})
 	}
 }

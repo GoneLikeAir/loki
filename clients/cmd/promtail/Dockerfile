@@ -1,3 +1,5 @@
+# FROM golang:1.20.1-bullseye as build
+
 # FROM golang:1.17.8-bullseye as build
 FROM golang:1.17.8-bullseye-with-deps as build
 COPY . /src/loki
@@ -9,6 +11,7 @@ RUN make clean && make BUILD_IN_CONTAINER=false promtail
 
 # Promtail requires debian as the base image to support systemd journal reading
 FROM debian:bullseye-with-all-deps-2
+# FROM debian:bullseye-slim
 # tzdata required for the timestamp stage to work
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
 # RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list

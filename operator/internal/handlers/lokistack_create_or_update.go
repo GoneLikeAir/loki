@@ -4,19 +4,25 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/grafana/loki/operator/internal/manifests/openshift"
-
-	"github.com/ViaQ/logerr/kverrors"
-	"github.com/ViaQ/logerr/log"
-	lokiv1beta1 "github.com/grafana/loki/operator/api/v1beta1"
+	configv1 "github.com/grafana/loki/operator/apis/config/v1"
+	lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
+	lokiv1beta1 "github.com/grafana/loki/operator/apis/loki/v1beta1"
 	"github.com/grafana/loki/operator/internal/external/k8s"
 	"github.com/grafana/loki/operator/internal/handlers/internal/gateway"
-	"github.com/grafana/loki/operator/internal/handlers/internal/secrets"
+	"github.com/grafana/loki/operator/internal/handlers/internal/openshift"
+	"github.com/grafana/loki/operator/internal/handlers/internal/rules"
+	"github.com/grafana/loki/operator/internal/handlers/internal/storage"
+	"github.com/grafana/loki/operator/internal/handlers/internal/tlsprofile"
 	"github.com/grafana/loki/operator/internal/manifests"
+	manifests_openshift "github.com/grafana/loki/operator/internal/manifests/openshift"
+	storageoptions "github.com/grafana/loki/operator/internal/manifests/storage"
 	"github.com/grafana/loki/operator/internal/metrics"
 	"github.com/grafana/loki/operator/internal/status"
 
+	"github.com/ViaQ/logerr/v2/kverrors"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -26,10 +32,17 @@ import (
 )
 
 // CreateOrUpdateLokiStack handles LokiStack create and update events.
-func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client, s *runtime.Scheme, flags manifests.FeatureFlags) error {
+func CreateOrUpdateLokiStack(
+	ctx context.Context,
+	log logr.Logger,
+	req ctrl.Request,
+	k k8s.Client,
+	s *runtime.Scheme,
+	fg configv1.FeatureGates,
+) error {
 	ll := log.WithValues("lokistack", req.NamespacedName, "event", "createOrUpdate")
 
-	var stack lokiv1beta1.LokiStack
+	var stack lokiv1.LokiStack
 	if err := k.Get(ctx, req.NamespacedName, &stack); err != nil {
 		if apierrors.IsNotFound(err) {
 			// maybe the user deleted it before we could react? Either way this isn't an issue
@@ -53,59 +66,155 @@ func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client
 	key := client.ObjectKey{Name: stack.Spec.Storage.Secret.Name, Namespace: stack.Namespace}
 	if err := k.Get(ctx, key, &storageSecret); err != nil {
 		if apierrors.IsNotFound(err) {
-			return status.SetDegradedCondition(ctx, k, req,
-				"Missing object storage secret",
-				lokiv1beta1.ReasonMissingObjectStorageSecret,
-			)
+			return &status.DegradedError{
+				Message: "Missing object storage secret",
+				Reason:  lokiv1.ReasonMissingObjectStorageSecret,
+				Requeue: false,
+			}
 		}
 		return kverrors.Wrap(err, "failed to lookup lokistack storage secret", "name", key)
 	}
 
-	storage, err := secrets.ExtractStorageSecret(&storageSecret, stack.Spec.Storage.Secret.Type)
+	objStore, err := storage.ExtractSecret(&storageSecret, stack.Spec.Storage.Secret.Type)
 	if err != nil {
-		return status.SetDegradedCondition(ctx, k, req,
-			"Invalid object storage secret contents",
-			lokiv1beta1.ReasonInvalidObjectStorageSecret,
-		)
+		return &status.DegradedError{
+			Message: fmt.Sprintf("Invalid object storage secret contents: %s", err),
+			Reason:  lokiv1.ReasonInvalidObjectStorageSecret,
+			Requeue: false,
+		}
+	}
+
+	storageSchemas, err := storageoptions.BuildSchemaConfig(
+		time.Now().UTC(),
+		stack.Spec.Storage,
+		stack.Status.Storage,
+	)
+	if err != nil {
+		return &status.DegradedError{
+			Message: fmt.Sprintf("Invalid object storage schema contents: %s", err),
+			Reason:  lokiv1.ReasonInvalidObjectStorageSchema,
+			Requeue: false,
+		}
+	}
+
+	objStore.Schemas = storageSchemas
+
+	if stack.Spec.Storage.TLS != nil {
+		var cm corev1.ConfigMap
+		key := client.ObjectKey{Name: stack.Spec.Storage.TLS.CA, Namespace: stack.Namespace}
+		if err = k.Get(ctx, key, &cm); err != nil {
+			if apierrors.IsNotFound(err) {
+				return &status.DegradedError{
+					Message: "Missing object storage CA config map",
+					Reason:  lokiv1.ReasonMissingObjectStorageCAConfigMap,
+					Requeue: false,
+				}
+			}
+			return kverrors.Wrap(err, "failed to lookup lokistack object storage CA config map", "name", key)
+		}
+
+		if !storage.IsValidCAConfigMap(&cm, stack.Spec.Storage.TLS.CAKey) {
+			return &status.DegradedError{
+				Message: "Invalid object storage CA configmap contents: missing key or no contents",
+				Reason:  lokiv1.ReasonInvalidObjectStorageCAConfigMap,
+				Requeue: false,
+			}
+		}
+
+		objStore.TLS = &storageoptions.TLSConfig{CA: cm.Name, Key: stack.Spec.Storage.TLS.CAKey}
 	}
 
 	var (
-		baseDomain      string
-		tenantSecrets   []*manifests.TenantSecrets
-		tenantConfigMap map[string]openshift.TenantData
+		baseDomain    string
+		tenantSecrets []*manifests.TenantSecrets
+		tenantConfigs map[string]manifests.TenantConfig
 	)
-	if flags.EnableGateway && stack.Spec.Tenants == nil {
-		return status.SetDegradedCondition(ctx, k, req,
-			"Invalid tenants configuration - TenantsSpec cannot be nil when gateway flag is enabled",
-			lokiv1beta1.ReasonInvalidTenantsConfiguration,
-		)
-	} else if flags.EnableGateway && stack.Spec.Tenants != nil {
+	if fg.LokiStackGateway && stack.Spec.Tenants == nil {
+		return &status.DegradedError{
+			Message: "Invalid tenants configuration - TenantsSpec cannot be nil when gateway flag is enabled",
+			Reason:  lokiv1.ReasonInvalidTenantsConfiguration,
+			Requeue: false,
+		}
+	} else if fg.LokiStackGateway && stack.Spec.Tenants != nil {
 		if err = gateway.ValidateModes(stack); err != nil {
-			return status.SetDegradedCondition(ctx, k, req,
-				fmt.Sprintf("Invalid tenants configuration: %s", err),
-				lokiv1beta1.ReasonInvalidTenantsConfiguration,
-			)
+			return &status.DegradedError{
+				Message: fmt.Sprintf("Invalid tenants configuration: %s", err),
+				Reason:  lokiv1.ReasonInvalidTenantsConfiguration,
+				Requeue: false,
+			}
 		}
 
-		if stack.Spec.Tenants.Mode != lokiv1beta1.OpenshiftLogging {
+		switch stack.Spec.Tenants.Mode {
+		case lokiv1.OpenshiftLogging, lokiv1.OpenshiftNetwork:
+			baseDomain, err = gateway.GetOpenShiftBaseDomain(ctx, k, req)
+			if err != nil {
+				return err
+			}
+		default:
 			tenantSecrets, err = gateway.GetTenantSecrets(ctx, k, req, &stack)
 			if err != nil {
 				return err
 			}
 		}
 
-		if stack.Spec.Tenants.Mode == lokiv1beta1.OpenshiftLogging {
-			baseDomain, err = gateway.GetOpenShiftBaseDomain(ctx, k, req)
-			if err != nil {
-				return nil
-			}
-
-			// extract the existing tenant's id, cookieSecret if exists, otherwise create new.
-			tenantConfigMap = gateway.GetTenantConfigMapData(ctx, k, req)
+		// extract the existing tenant's id, cookieSecret if exists, otherwise create new.
+		tenantConfigs, err = gateway.GetTenantConfigMapData(ctx, k, req)
+		if err != nil {
+			ll.Error(err, "error in getting tenant config map data")
 		}
 	}
 
-	// Here we will translate the lokiv1beta1.LokiStack options into manifest options
+	var (
+		alertingRules  []lokiv1beta1.AlertingRule
+		recordingRules []lokiv1beta1.RecordingRule
+		rulerConfig    *lokiv1beta1.RulerConfigSpec
+		rulerSecret    *manifests.RulerSecret
+		ocpAmEnabled   bool
+	)
+	if stack.Spec.Rules != nil && stack.Spec.Rules.Enabled {
+		alertingRules, recordingRules, err = rules.List(ctx, k, req.Namespace, stack.Spec.Rules)
+		if err != nil {
+			ll.Error(err, "failed to lookup rules", "spec", stack.Spec.Rules)
+		}
+
+		rulerConfig, err = rules.GetRulerConfig(ctx, k, req)
+		if err != nil {
+			ll.Error(err, "failed to lookup ruler config", "key", req.NamespacedName)
+		}
+
+		if rulerConfig != nil && rulerConfig.RemoteWriteSpec != nil && rulerConfig.RemoteWriteSpec.ClientSpec != nil {
+			var rs corev1.Secret
+			key := client.ObjectKey{Name: rulerConfig.RemoteWriteSpec.ClientSpec.AuthorizationSecretName, Namespace: stack.Namespace}
+			if err = k.Get(ctx, key, &rs); err != nil {
+				if apierrors.IsNotFound(err) {
+					return &status.DegradedError{
+						Message: "Missing ruler remote write authorization secret",
+						Reason:  lokiv1.ReasonMissingRulerSecret,
+						Requeue: false,
+					}
+				}
+				return kverrors.Wrap(err, "failed to lookup lokistack ruler secret", "name", key)
+			}
+
+			rulerSecret, err = rules.ExtractRulerSecret(&rs, rulerConfig.RemoteWriteSpec.ClientSpec.AuthorizationType)
+			if err != nil {
+				return &status.DegradedError{
+					Message: "Invalid ruler remote write authorization secret contents",
+					Reason:  lokiv1.ReasonInvalidRulerSecret,
+					Requeue: false,
+				}
+			}
+		}
+
+		ocpAmEnabled, err = openshift.AlertManagerSVCExists(ctx, stack.Spec, k)
+		if err != nil {
+			ll.Error(err, "failed to check OCP AlertManager")
+			return err
+		}
+
+	}
+
+	// Here we will translate the lokiv1.LokiStack options into manifest options
 	opts := manifests.Options{
 		Name:              req.Name,
 		Namespace:         req.Namespace,
@@ -113,10 +222,23 @@ func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client
 		GatewayImage:      gwImg,
 		GatewayBaseDomain: baseDomain,
 		Stack:             stack.Spec,
-		Flags:             flags,
-		ObjectStorage:     *storage,
-		TenantSecrets:     tenantSecrets,
-		TenantConfigMap:   tenantConfigMap,
+		Gates:             fg,
+		ObjectStorage:     *objStore,
+		AlertingRules:     alertingRules,
+		RecordingRules:    recordingRules,
+		Ruler: manifests.Ruler{
+			Spec:   rulerConfig,
+			Secret: rulerSecret,
+		},
+		Tenants: manifests.Tenants{
+			Secrets: tenantSecrets,
+			Configs: tenantConfigs,
+		},
+		OpenShiftOptions: manifests_openshift.Options{
+			BuildOpts: manifests_openshift.BuildOptions{
+				AlertManagerEnabled: ocpAmEnabled,
+			},
+		},
 	}
 
 	ll.Info("begin building manifests")
@@ -126,11 +248,28 @@ func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client
 		return optErr
 	}
 
-	if flags.EnableGateway {
+	if fg.LokiStackGateway {
 		if optErr := manifests.ApplyGatewayDefaultOptions(&opts); optErr != nil {
-			ll.Error(optErr, "failed to apply defaults options to gateway settings ")
-			return err
+			ll.Error(optErr, "failed to apply defaults options to gateway settings")
+			return optErr
 		}
+	}
+
+	tlsProfileType := configv1.TLSProfileType(fg.TLSProfile)
+	// Overwrite the profile from the flags and use the profile from the apiserver instead
+	if fg.OpenShift.ClusterTLSPolicy {
+		tlsProfileType = configv1.TLSProfileType("")
+	}
+
+	tlsProfile, err := tlsprofile.GetTLSSecurityProfile(ctx, k, tlsProfileType)
+	if err != nil {
+		// The API server is not guaranteed to be there nor have a result.
+		ll.Error(err, "failed to get security profile. will use default tls profile.")
+	}
+
+	if optErr := manifests.ApplyTLSSettings(&opts, tlsProfile); optErr != nil {
+		ll.Error(optErr, "failed to conform options to tls profile settings")
+		return optErr
 	}
 
 	objects, err := manifests.BuildAll(opts)
@@ -138,7 +277,18 @@ func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client
 		ll.Error(err, "failed to build manifests")
 		return err
 	}
+
 	ll.Info("manifests built", "count", len(objects))
+
+	// The status is updated before the objects are actually created to
+	// avoid the scenario in which the configmap is successfully created or
+	// updated and another resource is not. This would cause the status to
+	// be possibly misaligned with the configmap, which could lead to
+	// a user possibly being unable to read logs.
+	if err := status.SetStorageSchemaStatus(ctx, k, req, storageSchemas); err != nil {
+		ll.Error(err, "failed to set storage schema status")
+		return err
+	}
 
 	var errCount int32
 
@@ -177,7 +327,7 @@ func CreateOrUpdateLokiStack(ctx context.Context, req ctrl.Request, k k8s.Client
 
 	// 1x.extra-small is used only for development, so the metrics will not
 	// be collected.
-	if opts.Stack.Size != lokiv1beta1.SizeOneXExtraSmall {
+	if opts.Stack.Size != lokiv1.SizeOneXExtraSmall {
 		metrics.Collect(&opts.Stack, opts.Name)
 	}
 

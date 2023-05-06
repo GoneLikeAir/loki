@@ -13,10 +13,11 @@ import (
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/user"
 
+	"github.com/grafana/dskit/tenant"
+
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logql"
 	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/tenant"
 	"github.com/grafana/loki/pkg/util"
 	"github.com/grafana/loki/pkg/util/spanlogger"
 	"github.com/grafana/loki/pkg/util/validation"
@@ -57,17 +58,24 @@ func WithSplitByLimits(l Limits, splitBy time.Duration) Limits {
 	}
 }
 
+type UserIDTransformer func(context.Context, string) string
+
 // cacheKeyLimits intersects Limits and CacheSplitter
 type cacheKeyLimits struct {
 	Limits
+	transformer UserIDTransformer
 }
 
-func (l cacheKeyLimits) GenerateCacheKey(userID string, r queryrangebase.Request) string {
+func (l cacheKeyLimits) GenerateCacheKey(ctx context.Context, userID string, r queryrangebase.Request) string {
 	split := l.QuerySplitDuration(userID)
 
 	var currentInterval int64
 	if denominator := int64(split / time.Millisecond); denominator > 0 {
 		currentInterval = r.GetStart() / denominator
+	}
+
+	if l.transformer != nil {
+		userID = l.transformer(ctx, userID)
 	}
 
 	// include both the currentInterval and the split duration in key to ensure

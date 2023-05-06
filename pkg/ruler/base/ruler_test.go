@@ -3,7 +3,7 @@ package base
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -40,15 +40,17 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 
+	"github.com/grafana/dskit/tenant"
+
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/querier/series"
+	"github.com/grafana/loki/pkg/ruler/config"
 	"github.com/grafana/loki/pkg/ruler/rulespb"
 	"github.com/grafana/loki/pkg/ruler/rulestore"
 	"github.com/grafana/loki/pkg/ruler/rulestore/objectclient"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/hedging"
-	chunk_storage "github.com/grafana/loki/pkg/storage/chunk/storage"
-	"github.com/grafana/loki/pkg/tenant"
+	loki_storage "github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/storage/chunk/client/hedging"
+	"github.com/grafana/loki/pkg/storage/chunk/client/testutils"
 	"github.com/grafana/loki/pkg/util"
 )
 
@@ -82,6 +84,7 @@ type ruleLimits struct {
 	tenantShard          int
 	maxRulesPerRuleGroup int
 	maxRuleGroups        int
+	alertManagerConfig   map[string]*config.AlertManagerConfig
 }
 
 func (r ruleLimits) EvaluationDelay(_ string) time.Duration {
@@ -98,6 +101,10 @@ func (r ruleLimits) RulerMaxRuleGroupsPerTenant(_ string) int {
 
 func (r ruleLimits) RulerMaxRulesPerRuleGroup(_ string) int {
 	return r.maxRulesPerRuleGroup
+}
+
+func (r ruleLimits) RulerAlertManagerConfig(tenantID string) *config.AlertManagerConfig {
+	return r.alertManagerConfig[tenantID]
 }
 
 func testQueryableFunc(q storage.Querier) storage.QueryableFunc {
@@ -138,7 +145,19 @@ func testSetup(t *testing.T, q storage.Querier) (*promql.Engine, storage.Queryab
 
 func newManager(t *testing.T, cfg Config, q storage.Querier) *DefaultMultiTenantManager {
 	engine, queryable, pusher, logger, overrides, reg := testSetup(t, q)
-	manager, err := NewDefaultMultiTenantManager(cfg, DefaultTenantManagerFactory(cfg, pusher, queryable, engine, overrides, nil), reg, logger)
+	manager, err := NewDefaultMultiTenantManager(cfg, DefaultTenantManagerFactory(cfg, pusher, queryable, engine, overrides, nil), reg, logger, overrides)
+	require.NoError(t, err)
+
+	return manager
+}
+
+func newMultiTenantManager(t *testing.T, cfg Config, q storage.Querier, amConf map[string]*config.AlertManagerConfig) *DefaultMultiTenantManager {
+	engine, queryable, pusher, logger, _, reg := testSetup(t, q)
+
+	overrides := ruleLimits{evalDelay: 0, maxRuleGroups: 20, maxRulesPerRuleGroup: 15}
+	overrides.alertManagerConfig = amConf
+
+	manager, err := NewDefaultMultiTenantManager(cfg, DefaultTenantManagerFactory(cfg, pusher, queryable, engine, overrides, nil), reg, logger, overrides)
 	require.NoError(t, err)
 
 	return manager
@@ -182,13 +201,13 @@ func newMockClientsPool(cfg Config, logger log.Logger, reg prometheus.Registerer
 	}
 }
 
-func buildRuler(t *testing.T, rulerConfig Config, q storage.Querier, clientMetrics chunk_storage.ClientMetrics, rulerAddrMap map[string]*Ruler) *Ruler {
+func buildRuler(t *testing.T, rulerConfig Config, q storage.Querier, clientMetrics loki_storage.ClientMetrics, rulerAddrMap map[string]*Ruler) *Ruler {
 	engine, queryable, pusher, logger, overrides, reg := testSetup(t, q)
 	storage, err := NewLegacyRuleStore(rulerConfig.StoreConfig, hedging.Config{}, clientMetrics, promRules.FileLoader{}, log.NewNopLogger())
 	require.NoError(t, err)
 
 	managerFactory := DefaultTenantManagerFactory(rulerConfig, pusher, queryable, engine, overrides, reg)
-	manager, err := NewDefaultMultiTenantManager(rulerConfig, managerFactory, reg, log.NewNopLogger())
+	manager, err := NewDefaultMultiTenantManager(rulerConfig, managerFactory, reg, log.NewNopLogger(), overrides)
 	require.NoError(t, err)
 
 	ruler, err := newRuler(
@@ -205,7 +224,7 @@ func buildRuler(t *testing.T, rulerConfig Config, q storage.Querier, clientMetri
 }
 
 func newTestRuler(t *testing.T, rulerConfig Config) *Ruler {
-	m := chunk_storage.NewClientMetrics()
+	m := loki_storage.NewClientMetrics()
 	defer m.Unregister()
 	ruler := buildRuler(t, rulerConfig, nil, m, nil)
 	require.NoError(t, services.StartAndAwaitRunning(context.Background(), ruler))
@@ -233,7 +252,6 @@ func TestNotifierSendsUserIDHeader(t *testing.T) {
 
 	// We create an empty rule store so that the ruler will not load any rule from it.
 	cfg := defaultRulerConfig(t, newMockRuleStore(nil))
-
 	cfg.AlertmanagerURL = ts.URL
 	cfg.AlertmanagerDiscovery = false
 
@@ -258,6 +276,79 @@ func TestNotifierSendsUserIDHeader(t *testing.T) {
 		# HELP cortex_prometheus_notifications_dropped_total Total number of alerts dropped due to errors when sending to Alertmanager.
 		# TYPE cortex_prometheus_notifications_dropped_total counter
 		cortex_prometheus_notifications_dropped_total{user="1"} 0
+	`), "cortex_prometheus_notifications_dropped_total"))
+}
+
+func TestMultiTenantsNotifierSendsUserIDHeader(t *testing.T) {
+	var wg sync.WaitGroup
+
+	const tenant1 = "tenant1"
+	const tenant2 = "tenant2"
+
+	// We do expect 2 API calls for the users create with the getOrCreateNotifier()
+	wg.Add(2)
+	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, _, err := tenant.ExtractTenantIDFromHTTPRequest(r)
+		assert.NoError(t, err)
+		assert.Equal(t, userID, tenant1)
+		wg.Done()
+	}))
+	defer ts1.Close()
+
+	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, _, err := tenant.ExtractTenantIDFromHTTPRequest(r)
+		assert.NoError(t, err)
+		assert.Equal(t, userID, tenant2)
+		wg.Done()
+	}))
+	defer ts2.Close()
+
+	// We create an empty rule store so that the ruler will not load any rule from it.
+	cfg := defaultRulerConfig(t, newMockRuleStore(nil))
+
+	amCfg := map[string]*config.AlertManagerConfig{
+		tenant1: {
+			AlertmanagerURL:       ts1.URL,
+			AlertmanagerDiscovery: false,
+		},
+		tenant2: {
+			AlertmanagerURL:       ts2.URL,
+			AlertmanagerDiscovery: false,
+		},
+	}
+
+	manager := newMultiTenantManager(t, cfg, nil, amCfg)
+	defer manager.Stop()
+
+	n1, err := manager.getOrCreateNotifier(tenant1)
+	require.NoError(t, err)
+
+	n2, err := manager.getOrCreateNotifier(tenant2)
+	require.NoError(t, err)
+
+	// Loop until notifier discovery syncs up
+	for len(n1.Alertmanagers()) == 0 {
+		time.Sleep(10 * time.Millisecond)
+	}
+	n1.Send(&notifier.Alert{
+		Labels: labels.Labels{labels.Label{Name: "alertname1", Value: "testalert1"}},
+	})
+
+	for len(n2.Alertmanagers()) == 0 {
+		time.Sleep(10 * time.Millisecond)
+	}
+	n2.Send(&notifier.Alert{
+		Labels: labels.Labels{labels.Label{Name: "alertname2", Value: "testalert2"}},
+	})
+
+	wg.Wait()
+
+	// Ensure we have metrics in the notifier.
+	assert.NoError(t, prom_testutil.GatherAndCompare(manager.registry.(*prometheus.Registry), strings.NewReader(`
+		# HELP cortex_prometheus_notifications_dropped_total Total number of alerts dropped due to errors when sending to Alertmanager.
+		# TYPE cortex_prometheus_notifications_dropped_total counter
+		cortex_prometheus_notifications_dropped_total{user="tenant1"} 0
+		cortex_prometheus_notifications_dropped_total{user="tenant2"} 0
 	`), "cortex_prometheus_notifications_dropped_total"))
 }
 
@@ -373,7 +464,7 @@ func TestGetRules(t *testing.T) {
 						Mock: kvStore,
 					},
 				}
-				m := chunk_storage.NewClientMetrics()
+				m := loki_storage.NewClientMetrics()
 				defer m.Unregister()
 				r := buildRuler(t, cfg, nil, m, rulerAddrMap)
 				r.limits = ruleLimits{evalDelay: 0, tenantShard: tc.shuffleShardSize}
@@ -877,7 +968,7 @@ func TestSharding(t *testing.T) {
 					DisabledTenants:  tc.disabledUsers,
 				}
 
-				m := chunk_storage.NewClientMetrics()
+				m := loki_storage.NewClientMetrics()
 				defer m.Unregister()
 				r := buildRuler(t, cfg, nil, m, nil)
 				r.limits = ruleLimits{evalDelay: 0, tenantShard: tc.shuffleShardSize}
@@ -1057,10 +1148,10 @@ func verifyExpectedDeletedRuleGroupsForUser(t *testing.T, r *Ruler, userID strin
 	}
 }
 
-func setupRuleGroupsStore(t *testing.T, ruleGroups []ruleGroupKey) (*chunk.MockStorage, rulestore.RuleStore) {
-	obj := chunk.NewMockStorage()
+func setupRuleGroupsStore(t *testing.T, ruleGroups []ruleGroupKey) (*testutils.MockStorage, rulestore.RuleStore) {
+	obj := testutils.NewMockStorage()
 	rs := objectclient.NewRuleStore(obj, 5, log.NewNopLogger())
-
+	testutils.ResetMockStorage()
 	// "upload" rule groups
 	for _, key := range ruleGroups {
 		desc := rulespb.ToProto(key.user, key.namespace, rulefmt.RuleGroup{Name: key.group})
@@ -1088,7 +1179,7 @@ func TestRuler_ListAllRules(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	// Check status code and header
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -1228,7 +1319,7 @@ func TestRecoverAlertsPostOutage(t *testing.T) {
 	downAtActiveAtTime := currentTime.Add(time.Minute * -25)
 	downAtActiveSec := downAtActiveAtTime.Unix()
 
-	m := chunk_storage.NewClientMetrics()
+	m := loki_storage.NewClientMetrics()
 	defer m.Unregister()
 	// create a ruler but don't start it. instead, we'll evaluate the rule groups manually.
 	r := buildRuler(t, rulerCfg, &fakeQuerier{

@@ -1,28 +1,36 @@
 package openshift
 
-import "sigs.k8s.io/controller-runtime/pkg/client"
+import (
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
 
-// Build returns a list of auxiliary openshift/k8s objects
+// BuildGatewayObjects returns a list of auxiliary openshift/k8s objects
 // for lokistack gateway deployments on OpenShift.
-func Build(opts Options) []client.Object {
-	objs := []client.Object{
+func BuildGatewayObjects(opts Options) []client.Object {
+	return []client.Object{
 		BuildRoute(opts),
-		BuildServiceAccount(opts),
-		BuildClusterRole(opts),
-		BuildClusterRoleBinding(opts),
+		BuildGatewayServiceAccount(opts),
+		BuildGatewayClusterRole(opts),
+		BuildGatewayClusterRoleBinding(opts),
+		BuildMonitoringRole(opts),
+		BuildMonitoringRoleBinding(opts),
 	}
+}
 
-	if opts.BuildOpts.EnableServiceMonitors {
-		objs = append(
-			objs,
-			BuildMonitoringRole(opts),
-			BuildMonitoringRoleBinding(opts),
-		)
+// BuildLokiStackObjects returns a list of auxiliary openshift/k8s objects
+// for lokistack deployments on OpenShift.
+func BuildLokiStackObjects(opts Options) []client.Object {
+	return []client.Object{
+		BuildServiceCAConfigMap(opts),
 	}
+}
 
-	if opts.BuildOpts.EnableCertificateSigningService {
-		objs = append(objs, BuildServiceCAConfigMap(opts))
+// BuildRulerObjects returns a list of auxiliary openshift/k8s objects
+// for lokistack ruler deployments on OpenShift.
+func BuildRulerObjects(opts Options) []client.Object {
+	return []client.Object{
+		BuildRulerServiceAccount(opts),
+		BuildRulerClusterRole(opts),
+		BuildRulerClusterRoleBinding(opts),
 	}
-
-	return objs
 }

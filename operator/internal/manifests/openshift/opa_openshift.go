@@ -5,20 +5,23 @@ import (
 	"os"
 	"path"
 
+	lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
 	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
-	envRelatedImageOPA = "RELATED_IMAGE_OPA"
-	defaultOPAImage    = "quay.io/observatorium/opa-openshift:latest"
-	opaContainerName   = "opa"
-	opaDefaultPackage  = "lokistack"
-	opaDefaultAPIGroup = "loki.grafana.com"
-	opaMetricsPortName = "opa-metrics"
+	envRelatedImageOPA     = "RELATED_IMAGE_OPA"
+	defaultOPAImage        = "quay.io/observatorium/opa-openshift:latest"
+	opaContainerName       = "opa"
+	opaDefaultPackage      = "lokistack"
+	opaDefaultAPIGroup     = "loki.grafana.com"
+	opaMetricsPortName     = "opa-metrics"
+	opaDefaultLabelMatcher = "kubernetes_namespace_name"
 )
 
-func newOPAOpenShiftContainer(sercretVolumeName, tlsDir, certFile, keyFile string, withTLS bool) corev1.Container {
+func newOPAOpenShiftContainer(mode lokiv1.ModeType, secretVolumeName, tlsDir, certFile, keyFile, minTLSVersion, ciphers string, withTLS bool) corev1.Container {
 	var (
 		image        string
 		args         []string
@@ -34,10 +37,18 @@ func newOPAOpenShiftContainer(sercretVolumeName, tlsDir, certFile, keyFile strin
 	uriScheme = corev1.URISchemeHTTP
 	args = []string{
 		"--log.level=warn",
-		fmt.Sprintf("--opa.package=%s", opaDefaultPackage),
+		"--opa.skip-tenants=audit,infrastructure",
+		"--opa.admin-groups=system:cluster-admins,cluster-admin,dedicated-admin",
 		fmt.Sprintf("--web.listen=:%d", GatewayOPAHTTPPort),
 		fmt.Sprintf("--web.internal.listen=:%d", GatewayOPAInternalPort),
 		fmt.Sprintf("--web.healthchecks.url=http://localhost:%d", GatewayOPAHTTPPort),
+		fmt.Sprintf("--opa.package=%s", opaDefaultPackage),
+	}
+
+	if mode != lokiv1.OpenshiftNetwork {
+		args = append(args, []string{
+			fmt.Sprintf("--opa.matcher=%s", opaDefaultLabelMatcher),
+		}...)
 	}
 
 	if withTLS {
@@ -47,20 +58,23 @@ func newOPAOpenShiftContainer(sercretVolumeName, tlsDir, certFile, keyFile strin
 		args = append(args, []string{
 			fmt.Sprintf("--tls.internal.server.cert-file=%s", certFilePath),
 			fmt.Sprintf("--tls.internal.server.key-file=%s", keyFilePath),
+			fmt.Sprintf("--tls.min-version=%s", minTLSVersion),
+			fmt.Sprintf("--tls.cipher-suites=%s", ciphers),
 		}...)
 
 		uriScheme = corev1.URISchemeHTTPS
 
 		volumeMounts = []corev1.VolumeMount{
 			{
-				Name:      sercretVolumeName,
+				Name:      secretVolumeName,
 				ReadOnly:  true,
 				MountPath: tlsDir,
 			},
 		}
 	}
 
-	for _, t := range defaultTenants {
+	tenants := GetTenants(mode)
+	for _, t := range tenants {
 		args = append(args, fmt.Sprintf(`--openshift.mappings=%s=%s`, t, opaDefaultAPIGroup))
 	}
 
@@ -81,7 +95,7 @@ func newOPAOpenShiftContainer(sercretVolumeName, tlsDir, certFile, keyFile strin
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path:   "/live",
 					Port:   intstr.FromInt(int(GatewayOPAInternalPort)),
@@ -93,7 +107,7 @@ func newOPAOpenShiftContainer(sercretVolumeName, tlsDir, certFile, keyFile strin
 			FailureThreshold: 10,
 		},
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path:   "/ready",
 					Port:   intstr.FromInt(int(GatewayOPAInternalPort)),

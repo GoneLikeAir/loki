@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"github.com/go-kit/log"
@@ -16,7 +16,7 @@ import (
 
 	"github.com/grafana/loki/pkg/ruler/rulespb"
 	"github.com/grafana/loki/pkg/ruler/rulestore"
-	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
 )
 
 // Object Rule Storage Schema
@@ -35,14 +35,14 @@ const (
 
 // RuleStore allows cortex rules to be stored using an object store backend.
 type RuleStore struct {
-	client          chunk.ObjectClient
+	client          client.ObjectClient
 	loadConcurrency int
 
 	logger log.Logger
 }
 
 // NewRuleStore returns a new RuleStore
-func NewRuleStore(client chunk.ObjectClient, loadConcurrency int, logger log.Logger) *RuleStore {
+func NewRuleStore(client client.ObjectClient, loadConcurrency int, logger log.Logger) *RuleStore {
 	return &RuleStore{
 		client:          client,
 		loadConcurrency: loadConcurrency,
@@ -63,7 +63,7 @@ func (o *RuleStore) getRuleGroup(ctx context.Context, objectKey string, rg *rule
 	}
 	defer func() { _ = reader.Close() }()
 
-	buf, err := ioutil.ReadAll(reader)
+	buf, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read rule group %s", objectKey)
 	}
@@ -176,7 +176,7 @@ outer:
 	return g.Wait()
 }
 
-func convertRuleGroupObjectsToMap(ruleGroupObjects []chunk.StorageObject) map[string]rulespb.RuleGroupList {
+func convertRuleGroupObjectsToMap(ruleGroupObjects []client.StorageObject) map[string]rulespb.RuleGroupList {
 	result := map[string]rulespb.RuleGroupList{}
 	for _, rg := range ruleGroupObjects {
 		user, namespace, group := decomposeRuleObjectKey(rg.Key)

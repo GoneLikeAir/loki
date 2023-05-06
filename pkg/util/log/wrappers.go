@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/weaveworks/common/tracing"
 
-	"github.com/grafana/loki/pkg/tenant"
+	"github.com/grafana/dskit/tenant"
 )
 
 // WithUserID returns a Logger that has information about the current user in
@@ -20,8 +20,9 @@ func WithUserID(userID string, l log.Logger) log.Logger {
 // its details.
 //
 // e.g.
-//   log := util.WithContext(ctx)
-//   log.Errorf("Could not chunk chunks: %v", err)
+//
+//	log := util.WithContext(ctx)
+//	log.Errorf("Could not chunk chunks: %v", err)
 func WithContext(ctx context.Context, l log.Logger) log.Logger {
 	// Weaveworks uses "orgs" and "orgID" to represent Cortex users,
 	// even though the code-base generally uses `userID` to refer to the same thing.

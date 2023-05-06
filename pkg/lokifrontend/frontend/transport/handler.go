@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -17,18 +16,26 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/weaveworks/common/httpgrpc"
+	"github.com/weaveworks/common/httpgrpc/server"
+
+	"github.com/grafana/dskit/tenant"
 
 	querier_stats "github.com/grafana/loki/pkg/querier/stats"
-	"github.com/grafana/loki/pkg/tenant"
 	"github.com/grafana/loki/pkg/util"
 	util_log "github.com/grafana/loki/pkg/util/log"
-	serverutil "github.com/grafana/loki/pkg/util/server"
 )
 
 const (
 	// StatusClientClosedRequest is the status code for when a client request cancellation of an http request
 	StatusClientClosedRequest = 499
 	ServiceTimingHeaderName   = "Server-Timing"
+)
+
+var (
+	errCanceled              = httpgrpc.Errorf(StatusClientClosedRequest, context.Canceled.Error())
+	errDeadlineExceeded      = httpgrpc.Errorf(http.StatusGatewayTimeout, context.DeadlineExceeded.Error())
+	errRequestEntityTooLarge = httpgrpc.Errorf(http.StatusRequestEntityTooLarge, "http: request body too large")
 )
 
 // Config for a Handler.
@@ -115,7 +122,7 @@ func (f *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Buffer the body for later use to track slow queries.
 	var buf bytes.Buffer
 	r.Body = http.MaxBytesReader(w, r.Body, f.cfg.MaxBodySize)
-	r.Body = ioutil.NopCloser(io.TeeReader(r.Body, &buf))
+	r.Body = io.NopCloser(io.TeeReader(r.Body, &buf))
 
 	startTime := time.Now()
 	resp, err := f.roundTripper.RoundTrip(r)
@@ -199,7 +206,7 @@ func (f *Handler) reportQueryStats(r *http.Request, queryString url.Values, quer
 
 func (f *Handler) parseRequestQueryString(r *http.Request, bodyBuf bytes.Buffer) url.Values {
 	// Use previously buffered body.
-	r.Body = ioutil.NopCloser(&bodyBuf)
+	r.Body = io.NopCloser(&bodyBuf)
 
 	// Ensure the form has been parsed so all the parameters are present
 	err := r.ParseForm()
@@ -219,11 +226,17 @@ func formatQueryString(queryString url.Values) (fields []interface{}) {
 }
 
 func writeError(w http.ResponseWriter, err error) {
-	if util.IsRequestBodyTooLarge(err) {
-		serverutil.JSONError(w, http.StatusRequestEntityTooLarge, "http: request body too large")
-		return
+	switch err {
+	case context.Canceled:
+		err = errCanceled
+	case context.DeadlineExceeded:
+		err = errDeadlineExceeded
+	default:
+		if util.IsRequestBodyTooLarge(err) {
+			err = errRequestEntityTooLarge
+		}
 	}
-	serverutil.WriteError(err, w)
+	server.WriteError(w, err)
 }
 
 func writeServiceTimingHeader(queryResponseTime time.Duration, headers http.Header, stats *querier_stats.Stats) {

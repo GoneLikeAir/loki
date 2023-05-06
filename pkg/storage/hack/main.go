@@ -18,10 +18,10 @@ import (
 	"github.com/grafana/loki/pkg/ingester/client"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logql/syntax"
-	lstore "github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/storage"
 	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/local"
-	"github.com/grafana/loki/pkg/storage/chunk/storage"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/config"
 	util_log "github.com/grafana/loki/pkg/util/log"
 	"github.com/grafana/loki/pkg/validation"
 )
@@ -43,46 +43,28 @@ func main() {
 	}
 }
 
-func getStore(cm storage.ClientMetrics) (lstore.Store, error) {
-	storeConfig := lstore.Config{
-		Config: storage.Config{
-			BoltDBConfig: local.BoltDBConfig{Directory: "/tmp/benchmark/index"},
-			FSConfig:     local.FSConfig{Directory: "/tmp/benchmark/chunks"},
-		},
+func getStore(cm storage.ClientMetrics) (storage.Store, error) {
+	storeConfig := storage.Config{
+		BoltDBConfig: local.BoltDBConfig{Directory: "/tmp/benchmark/index"},
+		FSConfig:     local.FSConfig{Directory: "/tmp/benchmark/chunks"},
 	}
 
-	schemaCfg := lstore.SchemaConfig{
-		SchemaConfig: chunk.SchemaConfig{
-			Configs: []chunk.PeriodConfig{
-				{
-					From:       chunk.DayTime{Time: start},
-					IndexType:  "boltdb",
-					ObjectType: "filesystem",
-					Schema:     "v9",
-					IndexTables: chunk.PeriodicTableConfig{
-						Prefix: "index_",
-						Period: time.Hour * 168,
-					},
+	schemaCfg := config.SchemaConfig{
+		Configs: []config.PeriodConfig{
+			{
+				From:       config.DayTime{Time: start},
+				IndexType:  "boltdb",
+				ObjectType: "filesystem",
+				Schema:     "v9",
+				IndexTables: config.PeriodicTableConfig{
+					Prefix: "index_",
+					Period: time.Hour * 168,
 				},
 			},
 		},
 	}
 
-	chunkStore, err := storage.NewStore(
-		storeConfig.Config,
-		chunk.StoreConfig{},
-		schemaCfg.SchemaConfig,
-		&validation.Overrides{},
-		cm,
-		prometheus.DefaultRegisterer,
-		nil,
-		util_log.Logger,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return lstore.NewStore(storeConfig, schemaCfg, chunkStore, prometheus.DefaultRegisterer)
+	return storage.NewStore(storeConfig, config.ChunkStoreConfig{}, schemaCfg, &validation.Overrides{}, cm, prometheus.DefaultRegisterer, util_log.Logger)
 }
 
 func fillStore(cm storage.ClientMetrics) error {
@@ -107,7 +89,7 @@ func fillStore(cm storage.ClientMetrics) error {
 			}
 			labelsBuilder := labels.NewBuilder(lbs)
 			labelsBuilder.Set(labels.MetricName, "logs")
-			metric := labelsBuilder.Labels()
+			metric := labelsBuilder.Labels(nil)
 			fp := client.Fingerprint(lbs)
 			chunkEnc := chunkenc.NewMemChunk(chunkenc.EncLZ4_4M, chunkenc.UnorderedHeadBlockFmt, 262144, 1572864)
 			for ts := start.UnixNano(); ts < start.UnixNano()+time.Hour.Nanoseconds(); ts = ts + time.Millisecond.Nanoseconds() {

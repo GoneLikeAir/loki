@@ -2,6 +2,9 @@
 # referenced here as make variables. For example: $(GOLANGCI_LINT)
 include .bingo/Variables.mk
 
+WEBSITE_DIR ?= website
+WEBSITE_BASE_URL ?= https://loki-operator.dev
+
 # set the default target here, because the include above will automatically set
 # it to the first defined target
 .DEFAULT_GOAL := default
@@ -24,8 +27,8 @@ LOKI_OPERATOR_NS ?= openshift-operators-redhat
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= v0.0.1
-CHANNELS ?= "candidate"
-DEFAULT_CHANNEL ?= "candidate"
+CHANNELS ?= "stable"
+DEFAULT_CHANNEL ?= "stable"
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
@@ -52,15 +55,23 @@ REGISTRY_ORG ?= openshift-logging
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= quay.io/$(REGISTRY_ORG)/loki-operator-bundle:$(VERSION)
 
+# BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(subst v,,$(VERSION)) $(BUNDLE_METADATA_OPTS)
+
+# USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
+# You can enable this value if you would like to use SHA Based Digests
+# To enable set flag to true
+USE_IMAGE_DIGESTS ?= false
+ifeq ($(USE_IMAGE_DIGESTS), true)
+    BUNDLE_GEN_FLAGS += --use-image-digests
+endif
+
 CALCULATOR_IMG ?= quay.io/$(REGISTRY_ORG)/storage-size-calculator:latest
 
 GO_FILES := $(shell find . -type f -name '*.go')
 
 # Image URL to use all building/pushing image targets
 IMG ?= quay.io/$(REGISTRY_ORG)/loki-operator:$(VERSION)
-
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -69,6 +80,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+.PHONY: all
 all: generate lint manager bin/loki-broker
 
 OCI_RUNTIME ?= $(shell which podman || which docker)
@@ -86,6 +98,7 @@ OCI_RUNTIME ?= $(shell which podman || which docker)
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
 
+.PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-24s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
@@ -97,25 +110,32 @@ deps: go.mod go.sum
 	go mod download
 	go mod verify
 
+.PHONY: cli
 cli: deps bin/loki-broker ## Build loki-broker CLI binary
 bin/loki-broker: $(GO_FILES) | generate
 	go build -o $@ ./cmd/loki-broker/
 
+.PHONY: manager
 manager: deps generate ## Build manager binary
 	go build -o bin/manager main.go
 
+.PHONY: size-calculator
 size-calculator: deps generate ## Build size-calculator binary
 	go build -o bin/size-calculator main.go
 
+.PHONY: go-generate
 go-generate: ## Run go generate
 	go generate ./...
 
+.PHONY: generate
 generate: $(CONTROLLER_GEN) ## Generate controller and crd code
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+.PHONY: manifests
 manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=lokistack-manager crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
+.PHONY: test
 test: deps generate go-generate lint lint-prometheus manifests ## Run tests
 test: $(GO_FILES)
 	go test ./... -coverprofile cover.out
@@ -124,22 +144,27 @@ test: $(GO_FILES)
 test-unit-prometheus: $(PROMTOOL) ## Run prometheus unit tests
 	@$(PROMTOOL) test rules ./internal/manifests/internal/alerts/testdata/test.yaml
 
+.PHONY: scorecard
 scorecard: generate go-generate bundle ## Run scorecard test
 	$(OPERATOR_SDK) scorecard bundle
 
+.PHONY: lint
 lint: $(GOLANGCI_LINT) | generate ## Run golangci-lint on source code.
 	$(GOLANGCI_LINT) run ./...
 
 .PHONY: lint-prometheus
 lint-prometheus: $(PROMTOOL) ## Run promtool check against recording rules and alerts.
-	@$(PROMTOOL) check rules ./internal/manifests/internal/alerts/prometheus-alerts.yaml
+	@$(PROMTOOL) check rules ./internal/manifests/internal/alerts/prometheus-*.yaml
 
+.PHONY: fmt
 fmt: $(GOFUMPT) ## Run gofumpt on source code.
-	find . -type f -name '*.go' -not -path '**/fake_*.go' -exec $(GOFUMPT) -s -w {} \;
+	find . -type f -name '*.go' -not -path '**/fake_*.go' -exec $(GOFUMPT) -w {} \;
 
+.PHONY: oci-build
 oci-build: ## Build the image
 	$(OCI_RUNTIME) build -t ${IMG} .
 
+.PHONY: oci-push
 oci-push: ## Push the image
 	$(OCI_RUNTIME) push ${IMG}
 
@@ -147,7 +172,7 @@ oci-push: ## Push the image
 bundle: manifests $(KUSTOMIZE) $(OPERATOR_SDK)
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(subst v,,$(VERSION)) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-build
@@ -156,21 +181,43 @@ bundle-build: ## Build the bundle image.
 
 ##@ Deployment
 
+ifndef ignore-not-found
+  ignore-not-found = false
+endif
+
+.PHONY: quickstart
+ifeq ($(or $(findstring openshift-logging,$(IMG)),$(findstring openshift-logging,$(BUNDLE_IMG))),openshift-logging)
+quickstart: $(KIND) ## Quickstart full dev environment on local kind cluster
+	@./quickstart.sh $(filter-out $@,$(MAKECMDGOALS))
+else
+quickstart: oci-build oci-push $(KIND)
+	@./quickstart.sh $(filter-out $@,$(MAKECMDGOALS))
+endif
+
+.PHONY: quickstart-cleanup
+quickstart-cleanup: $(KIND) ## Cleanup for quickstart set up
+	$(KIND) delete cluster
+
+.PHONY: run
 run: generate manifests ## Run against the configured Kubernetes cluster in ~/.kube/config
 	go run ./main.go
 
+.PHONY: install
 install: manifests $(KUSTOMIZE) ## Install CRDs into a cluster
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
-uninstall: manifests $(KUSTOMIZE) ## Uninstall CRDs from a cluster
-	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+.PHONY: uninstall
+uninstall: manifests $(KUSTOMIZE) ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
+.PHONY: deploy
 deploy: manifests $(KUSTOMIZE) ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/overlays/development | kubectl apply -f -
 
-undeploy: ## Undeploy controller from the configured Kubernetes cluster in ~/.kube/config
-	$(KUSTOMIZE) build config/overlays/development | kubectl delete -f -
+.PHONY: undeploy
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/overlays/development | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 # Build and push the bundle image to a container registry.
 .PHONY: olm-deploy-bundle
@@ -188,6 +235,15 @@ olm-deploy:  ## Deploy the operator bundle and the operator via OLM into an Kube
 else
 olm-deploy: olm-deploy-bundle olm-deploy-operator $(OPERATOR_SDK)
 	$(OPERATOR_SDK) run bundle -n $(LOKI_OPERATOR_NS) --install-mode AllNamespaces $(BUNDLE_IMG)
+endif
+
+.PHONY: olm-upgrade
+ifeq ($(or $(findstring openshift-logging,$(IMG)),$(findstring openshift-logging,$(BUNDLE_IMG))),openshift-logging)
+olm-upgrade:  ## Upgrade the operator bundle and the operator via OLM into an Kubernetes cluster selected via KUBECONFIG.
+	$(error Set variable REGISTRY_ORG to use a custom container registry org account for local development)
+else
+olm-upgrade: olm-deploy-bundle olm-deploy-operator $(OPERATOR_SDK)
+	$(OPERATOR_SDK) run bundle-upgrade -n $(LOKI_OPERATOR_NS) $(BUNDLE_IMG)
 endif
 
 .PHONY: olm-undeploy
@@ -210,8 +266,36 @@ endif
 undeploy-size-calculator: ## Undeploy storage size calculator
 	$(KUSTOMIZE) build config/overlays/openshift/size-calculator | kubectl delete -f -
 
+.PHONY: oci-build-calculator
 oci-build-calculator: ## Build the calculator image
 	$(OCI_RUNTIME) build -f calculator.Dockerfile -t $(CALCULATOR_IMG) .
 
+.PHONY: oci-push-calculator
 oci-push-calculator: ## Push the calculator image
 	$(OCI_RUNTIME) push $(CALCULATOR_IMG)
+
+##@ Website
+TYPES_V1BETA1_TARGET := $(shell find apis/loki -type f -iname "*_types.go")
+docs/operator/api.md: $(TYPES_V1BETA1_TARGET)
+	po-docgen api $(TYPES_V1BETA1_TARGET) > $@
+	sed -i 's/Prometheus Operator/Loki Operator/ig' $@
+
+FEATURE_GATES_TARGET := $(shell find apis/config -type f -iname "*_types.go")
+docs/operator/feature-gates.md: $(FEATURE_GATES_TARGET)
+	po-docgen api $(FEATURE_GATES_TARGET) > $@
+	sed -i 's/title: "API"/title: "Feature Gates"/' $@
+	sed -i 's/Prometheus Operator/Loki Operator/ig' $@
+
+.PHONY: web-pre
+web-pre: docs/operator/api.md docs/operator/feature-gates.md
+	@echo ">> preprocessing docs for website"
+	@git submodule update --init --recursive
+	cd $(WEBSITE_DIR)/themes/doks/ && npm install && rm -rf content
+
+.PHONY: web
+web: $(HUGO) | web-pre ## Run production build of the loki-operator.dev website
+	cd $(WEBSITE_DIR) && $(HUGO) -b $(WEBSITE_BASE_URL)
+
+.PHONY: web-serve
+web-serve: $(HUGO) | web-pre ## Run local preview version of the loki-operator.dev website
+	@cd $(WEBSITE_DIR) && $(HUGO) serve

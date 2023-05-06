@@ -16,8 +16,9 @@ import (
 	_ "github.com/grafana/loki/pkg/util/build"
 )
 import (
-	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/grafana/loki/clients/pkg/promtail/client"
 )
 
 var (
@@ -45,9 +46,10 @@ func FLBPluginRegister(ctx unsafe.Pointer) int {
 	return output.FLBPluginRegister(ctx, "grafana-loki", "Ship fluent-bit logs to Grafana Loki")
 }
 
-//export FLBPluginInit
 // (fluentbit will call this)
 // ctx (context) pointer to fluentbit context (state/ c code)
+//
+//export FLBPluginInit
 func FLBPluginInit(ctx unsafe.Pointer) int {
 	conf, err := parseConfig(&pluginConfig{ctx: ctx})
 	if err != nil {

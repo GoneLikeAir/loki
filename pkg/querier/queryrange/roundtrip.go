@@ -11,18 +11,21 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/weaveworks/common/httpgrpc"
 
+	"github.com/grafana/dskit/tenant"
+
 	"github.com/grafana/loki/pkg/loghttp"
 	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
 	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/storage/chunk"
 	"github.com/grafana/loki/pkg/storage/chunk/cache"
-	"github.com/grafana/loki/pkg/tenant"
+	"github.com/grafana/loki/pkg/storage/config"
 	"github.com/grafana/loki/pkg/util/validation"
 )
 
 // Config is the configuration for the queryrange tripperware
 type Config struct {
 	queryrangebase.Config `yaml:",inline"`
+	Transformer           UserIDTransformer `yaml:"-"`
 }
 
 // RegisterFlags adds the flags required to configure this flag set.
@@ -40,7 +43,9 @@ func NewTripperware(
 	cfg Config,
 	log log.Logger,
 	limits Limits,
-	schema chunk.SchemaConfig,
+	schema config.SchemaConfig,
+	cacheGenNumLoader queryrangebase.CacheGenNumberLoader,
+	retentionEnabled bool,
 	registerer prometheus.Registerer,
 ) (queryrangebase.Tripperware, Stopper, error) {
 	metrics := NewMetrics(registerer)
@@ -49,8 +54,9 @@ func NewTripperware(
 		c   cache.Cache
 		err error
 	)
+
 	if cfg.CacheResults {
-		c, err = cache.New(cfg.CacheConfig, registerer, log)
+		c, err = cache.New(cfg.CacheConfig, registerer, log, stats.ResultCache)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -60,7 +66,7 @@ func NewTripperware(
 	}
 
 	metricsTripperware, err := NewMetricTripperware(cfg, log, limits, schema, LokiCodec, c,
-		PrometheusExtractor{}, metrics, registerer)
+		cacheGenNumLoader, retentionEnabled, PrometheusExtractor{}, metrics, registerer)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -135,16 +141,13 @@ func (r roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		case syntax.SampleExpr:
 			return r.metric.RoundTrip(req)
 		case syntax.LogSelectorExpr:
-			expr, err := transformRegexQuery(req, e)
+			// Note, this function can mutate the request
+			_, err := transformRegexQuery(req, e)
 			if err != nil {
 				return nil, httpgrpc.Errorf(http.StatusBadRequest, err.Error())
 			}
 			if err := validateLimits(req, rangeQuery.Limit, r.limits); err != nil {
 				return nil, err
-			}
-			// Only filter expressions are query sharded
-			if !expr.HasFilter() {
-				return r.next.RoundTrip(req)
 			}
 			return r.log.RoundTrip(req)
 
@@ -222,6 +225,7 @@ const (
 	QueryRangeOp   = "query_range"
 	SeriesOp       = "series"
 	LabelNamesOp   = "labels"
+	IndexStatsOp   = "index_stats"
 )
 
 func getOperation(path string) string {
@@ -230,21 +234,23 @@ func getOperation(path string) string {
 		return QueryRangeOp
 	case strings.HasSuffix(path, "/series"):
 		return SeriesOp
-	case strings.HasSuffix(path, "/labels") || strings.HasSuffix(path, "/label"):
+	case strings.HasSuffix(path, "/labels") || strings.HasSuffix(path, "/label") || strings.HasSuffix(path, "/values"):
 		return LabelNamesOp
 	case strings.HasSuffix(path, "/v1/query"):
 		return InstantQueryOp
+	case path == "/loki/api/v1/index/stats":
+		return IndexStatsOp
 	default:
 		return ""
 	}
 }
 
-// NewLogFilterTripperware creates a new frontend tripperware responsible for handling log requests with regex.
+// NewLogFilterTripperware creates a new frontend tripperware responsible for handling log requests.
 func NewLogFilterTripperware(
 	cfg Config,
 	log log.Logger,
 	limits Limits,
-	schema chunk.SchemaConfig,
+	schema config.SchemaConfig,
 	codec queryrangebase.Codec,
 	c cache.Cache,
 	metrics *Metrics,
@@ -264,6 +270,7 @@ func NewLogFilterTripperware(
 			func(r queryrangebase.Request) bool {
 				return !r.GetCachingOptions().Disabled
 			},
+			cfg.Transformer,
 			metrics.LogResultCacheMetrics,
 		)
 		queryRangeMiddleware = append(
@@ -279,7 +286,7 @@ func NewLogFilterTripperware(
 				log,
 				schema.Configs,
 				metrics.InstrumentMiddlewareMetrics, // instrumentation is included in the sharding middleware
-				metrics.ShardingMetrics,
+				metrics.MiddlewareMapperMetrics.shardMapper,
 				limits,
 			),
 		)
@@ -307,9 +314,10 @@ func NewSeriesTripperware(
 	limits Limits,
 	codec queryrangebase.Codec,
 	metrics *Metrics,
-	schema chunk.SchemaConfig,
+	schema config.SchemaConfig,
 ) (queryrangebase.Tripperware, error) {
 	queryRangeMiddleware := []queryrangebase.Middleware{
+		StatsCollectorMiddleware(),
 		NewLimitsMiddleware(limits),
 		queryrangebase.InstrumentMiddleware("split_by_interval", metrics.InstrumentMiddlewareMetrics),
 		// The Series API needs to pull one chunk per series to extract the label set, which is much cheaper than iterating through all matching chunks.
@@ -331,7 +339,7 @@ func NewSeriesTripperware(
 				log,
 				schema.Configs,
 				metrics.InstrumentMiddlewareMetrics,
-				metrics.ShardingMetrics,
+				metrics.MiddlewareMapperMetrics.shardMapper,
 				limits,
 				codec,
 			),
@@ -355,6 +363,7 @@ func NewLabelsTripperware(
 	metrics *Metrics,
 ) (queryrangebase.Tripperware, error) {
 	queryRangeMiddleware := []queryrangebase.Middleware{
+		StatsCollectorMiddleware(),
 		NewLimitsMiddleware(limits),
 		queryrangebase.InstrumentMiddleware("split_by_interval", metrics.InstrumentMiddlewareMetrics),
 		// Force a 24 hours split by for labels API, this will be more efficient with our static daily bucket storage.
@@ -383,9 +392,11 @@ func NewMetricTripperware(
 	cfg Config,
 	log log.Logger,
 	limits Limits,
-	schema chunk.SchemaConfig,
+	schema config.SchemaConfig,
 	codec queryrangebase.Codec,
 	c cache.Cache,
+	cacheGenNumLoader queryrangebase.CacheGenNumberLoader,
+	retentionEnabled bool,
 	extractor queryrangebase.Extractor,
 	metrics *Metrics,
 	registerer prometheus.Registerer,
@@ -405,19 +416,21 @@ func NewMetricTripperware(
 		SplitByIntervalMiddleware(limits, codec, splitMetricByTime, metrics.SplitByMetrics),
 	)
 
+	cacheKey := cacheKeyLimits{limits, cfg.Transformer}
 	if cfg.CacheResults {
 		queryCacheMiddleware, err := queryrangebase.NewResultsCacheMiddleware(
 			log,
 			c,
-			cacheKeyLimits{limits},
+			cacheKey,
 			limits,
 			codec,
 			extractor,
-			nil,
+			cacheGenNumLoader,
 			func(r queryrangebase.Request) bool {
 				return !r.GetCachingOptions().Disabled
 			},
-			registerer,
+			retentionEnabled,
+			metrics.ResultsCacheMetrics,
 		)
 		if err != nil {
 			return nil, err
@@ -435,7 +448,7 @@ func NewMetricTripperware(
 				log,
 				schema.Configs,
 				metrics.InstrumentMiddlewareMetrics, // instrumentation is included in the sharding middleware
-				metrics.ShardingMetrics,
+				metrics.MiddlewareMapperMetrics.shardMapper,
 				limits,
 			),
 		)
@@ -469,7 +482,7 @@ func NewInstantMetricTripperware(
 	cfg Config,
 	log log.Logger,
 	limits Limits,
-	schema chunk.SchemaConfig,
+	schema config.SchemaConfig,
 	codec queryrangebase.Codec,
 	metrics *Metrics,
 ) (queryrangebase.Tripperware, error) {
@@ -477,11 +490,12 @@ func NewInstantMetricTripperware(
 
 	if cfg.ShardedQueries {
 		queryRangeMiddleware = append(queryRangeMiddleware,
+			NewSplitByRangeMiddleware(log, limits, metrics.MiddlewareMapperMetrics.rangeMapper),
 			NewQueryShardMiddleware(
 				log,
 				schema.Configs,
 				metrics.InstrumentMiddlewareMetrics, // instrumentation is included in the sharding middleware
-				metrics.ShardingMetrics,
+				metrics.MiddlewareMapperMetrics.shardMapper,
 				limits,
 			),
 		)

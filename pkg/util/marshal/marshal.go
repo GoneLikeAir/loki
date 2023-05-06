@@ -3,9 +3,8 @@
 package marshal
 
 import (
+	"fmt"
 	"io"
-
-	"github.com/grafana/loki/pkg/logqlmodel"
 
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
@@ -13,6 +12,8 @@ import (
 	"github.com/grafana/loki/pkg/loghttp"
 	legacy "github.com/grafana/loki/pkg/loghttp/legacy"
 	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/storage/stores/index/stats"
 )
 
 // WriteQueryResponseJSON marshals the promql.Value to v1 loghttp JSON and then
@@ -20,7 +21,7 @@ import (
 func WriteQueryResponseJSON(v logqlmodel.Result, w io.Writer) error {
 	value, err := NewResultValue(v.Data)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write JSON response: %w", err)
 	}
 
 	q := loghttp.QueryResponse{
@@ -85,4 +86,10 @@ func WriteSeriesResponseJSON(r logproto.SeriesResponse, w io.Writer) error {
 type seriesResponseAdapter struct {
 	Status string              `json:"status"`
 	Data   []map[string]string `json:"data"`
+}
+
+// WriteIndexStatsResponseJSON marshals a gatewaypb.Stats to JSON and then
+// writes it to the provided io.Writer.
+func WriteIndexStatsResponseJSON(r *stats.Stats, w io.Writer) error {
+	return jsoniter.NewEncoder(w).Encode(r)
 }

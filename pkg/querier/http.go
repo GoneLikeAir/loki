@@ -3,25 +3,35 @@ package querier
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/websocket"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql/parser"
 	"github.com/weaveworks/common/httpgrpc"
+	"github.com/weaveworks/common/middleware"
+
+	"github.com/grafana/dskit/tenant"
 
 	"github.com/grafana/loki/pkg/loghttp"
 	loghttp_legacy "github.com/grafana/loki/pkg/loghttp/legacy"
 	"github.com/grafana/loki/pkg/logql"
 	"github.com/grafana/loki/pkg/logql/syntax"
 	"github.com/grafana/loki/pkg/logqlmodel"
-	"github.com/grafana/loki/pkg/tenant"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	index_stats "github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/grafana/loki/pkg/util/httpreq"
 	util_log "github.com/grafana/loki/pkg/util/log"
 	"github.com/grafana/loki/pkg/util/marshal"
 	marshal_legacy "github.com/grafana/loki/pkg/util/marshal/legacy"
+	"github.com/grafana/loki/pkg/util/server"
 	serverutil "github.com/grafana/loki/pkg/util/server"
+	"github.com/grafana/loki/pkg/util/spanlogger"
 	util_validation "github.com/grafana/loki/pkg/util/validation"
 	"github.com/grafana/loki/pkg/validation"
 )
@@ -35,7 +45,7 @@ type QueryResponse struct {
 	Result     parser.Value     `json:"result"`
 }
 
-//nolint // QurierAPI defines HTTP handler functions for the querier.
+// nolint // QuerierAPI defines HTTP handler functions for the querier.
 type QuerierAPI struct {
 	querier Querier
 	cfg     Config
@@ -56,16 +66,13 @@ func NewQuerierAPI(cfg Config, querier Querier, limits *validation.Overrides, lo
 
 // RangeQueryHandler is a http.HandlerFunc for range queries.
 func (q *QuerierAPI) RangeQueryHandler(w http.ResponseWriter, r *http.Request) {
-	// Enforce the query timeout while querying backends
-	ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(q.cfg.QueryTimeout))
-	defer cancel()
-
 	request, err := loghttp.ParseRangeQuery(r)
 	if err != nil {
 		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
 		return
 	}
 
+	ctx := r.Context()
 	if err := q.validateEntriesLimits(ctx, request.Query, request.Limit); err != nil {
 		serverutil.WriteError(err, w)
 		return
@@ -95,16 +102,13 @@ func (q *QuerierAPI) RangeQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 // InstantQueryHandler is a http.HandlerFunc for instant queries.
 func (q *QuerierAPI) InstantQueryHandler(w http.ResponseWriter, r *http.Request) {
-	// Enforce the query timeout while querying backends
-	ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(q.cfg.QueryTimeout))
-	defer cancel()
-
 	request, err := loghttp.ParseInstantQuery(r)
 	if err != nil {
 		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
 		return
 	}
 
+	ctx := r.Context()
 	if err := q.validateEntriesLimits(ctx, request.Query, request.Limit); err != nil {
 		serverutil.WriteError(err, w)
 		return
@@ -135,10 +139,6 @@ func (q *QuerierAPI) InstantQueryHandler(w http.ResponseWriter, r *http.Request)
 
 // LogQueryHandler is a http.HandlerFunc for log only queries.
 func (q *QuerierAPI) LogQueryHandler(w http.ResponseWriter, r *http.Request) {
-	// Enforce the query timeout while querying backends
-	ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(q.cfg.QueryTimeout))
-	defer cancel()
-
 	request, err := loghttp.ParseRangeQuery(r)
 	if err != nil {
 		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
@@ -162,6 +162,7 @@ func (q *QuerierAPI) LogQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := r.Context()
 	if err := q.validateEntriesLimits(ctx, request.Query, request.Limit); err != nil {
 		serverutil.WriteError(err, w)
 		return
@@ -199,7 +200,31 @@ func (q *QuerierAPI) LabelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	timer := prometheus.NewTimer(logql.QueryTime.WithLabelValues("labels"))
+	defer timer.ObserveDuration()
+
+	start := time.Now()
+	statsCtx, ctx := stats.NewContext(r.Context())
+
 	resp, err := q.querier.Label(r.Context(), req)
+	queueTime, _ := ctx.Value(httpreq.QueryQueueTimeHTTPHeader).(time.Duration)
+
+	resLength := 0
+	if resp != nil {
+		resLength = len(resp.Values)
+	}
+	// record stats about the label query
+	statResult := statsCtx.Result(time.Since(start), queueTime, resLength)
+	log := spanlogger.FromContext(ctx)
+	statResult.Log(level.Debug(log))
+
+	status := 200
+	if err != nil {
+		status, _ = server.ClientHTTPStatusAndError(err)
+	}
+
+	logql.RecordLabelQueryMetrics(ctx, log, *req.Start, *req.End, req.Name, strconv.Itoa(status), statResult)
+
 	if err != nil {
 		serverutil.WriteError(err, w)
 		return
@@ -235,18 +260,19 @@ func (q *QuerierAPI) TailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tenantID, err := tenant.TenantID(r.Context())
+	if err != nil {
+		level.Warn(logger).Log("msg", "error getting tenant id", "err", err)
+		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		level.Error(logger).Log("msg", "Error in upgrading websocket", "err", err)
 		return
 	}
 
-	tenantID, err := tenant.TenantID(r.Context())
-	if err != nil {
-		level.Error(logger).Log("msg", "error getting tenant id", "err", err)
-		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
-		return
-	}
 	level.Info(logger).Log("msg", "starting to tail logs", "tenant", tenantID, "selectors", req.Query)
 
 	defer func() {
@@ -348,13 +374,64 @@ func (q *QuerierAPI) SeriesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	timer := prometheus.NewTimer(logql.QueryTime.WithLabelValues("series"))
+	defer timer.ObserveDuration()
+
+	start := time.Now()
+	statsCtx, ctx := stats.NewContext(r.Context())
+
 	resp, err := q.querier.Series(r.Context(), req)
+	queueTime, _ := ctx.Value(httpreq.QueryQueueTimeHTTPHeader).(time.Duration)
+
+	resLength := 0
+	if resp != nil {
+		resLength = len(resp.Series)
+	}
+
+	// record stats about the label query
+	statResult := statsCtx.Result(time.Since(start), queueTime, resLength)
+	log := spanlogger.FromContext(ctx)
+	statResult.Log(level.Debug(log))
+
+	status := 200
+	if err != nil {
+		status, _ = server.ClientHTTPStatusAndError(err)
+	}
+
+	logql.RecordSeriesQueryMetrics(ctx, log, req.Start, req.End, req.Groups, strconv.Itoa(status), statResult)
 	if err != nil {
 		serverutil.WriteError(err, w)
 		return
 	}
 
 	err = marshal.WriteSeriesResponseJSON(*resp, w)
+	if err != nil {
+		serverutil.WriteError(err, w)
+		return
+	}
+}
+
+// IndexStatsHandler queries the index for the data statistics related to a query
+func (q *QuerierAPI) IndexStatsHandler(w http.ResponseWriter, r *http.Request) {
+	req, err := loghttp.ParseIndexStatsQuery(r)
+	if err != nil {
+		serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
+		return
+	}
+
+	// TODO(owen-d): log metadata, record stats?
+	resp, err := q.querier.IndexStats(r.Context(), req)
+	if resp == nil {
+		// Some stores don't implement this
+		resp = &index_stats.Stats{}
+	}
+
+	if err != nil {
+		serverutil.WriteError(err, w)
+		return
+	}
+
+	err = marshal.WriteIndexStatsResponseJSON(resp, w)
 	if err != nil {
 		serverutil.WriteError(err, w)
 		return
@@ -402,4 +479,34 @@ func (q *QuerierAPI) validateEntriesLimits(ctx context.Context, query string, li
 			"max entries limit per query exceeded, limit > max_entries_limit (%d > %d)", limit, maxEntriesLimit)
 	}
 	return nil
+}
+
+// WrapQuerySpanAndTimeout applies a context deadline and a span logger to a query call.
+//
+// The timeout is based on the per-tenant query timeout configuration.
+func WrapQuerySpanAndTimeout(call string, q *QuerierAPI) middleware.Interface {
+	return middleware.Func(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			log, ctx := spanlogger.New(req.Context(), call)
+			tenants, err := tenant.TenantIDs(ctx)
+			if err != nil {
+				level.Error(log).Log("msg", "couldn't fetch tenantID", "err", err)
+				serverutil.WriteError(httpgrpc.Errorf(http.StatusBadRequest, err.Error()), w)
+				return
+			}
+
+			timeout := util_validation.SmallestPositiveNonZeroDurationPerTenant(tenants, q.limits.QueryTimeout)
+			// TODO: remove this clause once we remove the deprecated query-timeout flag.
+			if q.cfg.QueryTimeout != 0 { // querier YAML configuration is still configured.
+				level.Warn(log).Log("msg", "deprecated querier:query_timeout YAML configuration identified. Please migrate to limits:query_timeout instead.", "call", "WrapQuerySpanAndTimeout", "org_id", strings.Join(tenants, ","))
+				timeout = q.cfg.QueryTimeout
+			}
+
+			newCtx, cancel := context.WithTimeout(ctx, timeout)
+			defer cancel()
+
+			newReq := req.WithContext(newCtx)
+			next.ServeHTTP(w, newReq)
+		})
+	})
 }

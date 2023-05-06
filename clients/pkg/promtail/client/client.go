@@ -154,8 +154,9 @@ type client struct {
 	externalLabels model.LabelSet
 
 	// ctx is used in any upstream calls from the `client`.
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx        context.Context
+	cancel     context.CancelFunc
+	maxStreams int
 
 	picker *AccessPicker
 }
@@ -164,18 +165,18 @@ type client struct {
 type Tripperware func(http.RoundTripper) http.RoundTripper
 
 // New makes a new Client.
-func New(metrics *Metrics, cfg Config, streamLagLabels []string, logger log.Logger) (Client, error) {
-	return newClient(metrics, cfg, streamLagLabels, logger)
+func New(metrics *Metrics, cfg Config, streamLagLabels []string, maxStreams int, logger log.Logger) (Client, error) {
+	if cfg.StreamLagLabels.String() != "" {
+		return nil, fmt.Errorf("client config stream_lag_labels is deprecated in favour of the config file options block field, and will be ignored: %+v", cfg.StreamLagLabels.String())
+	}
+	return newClient(metrics, cfg, streamLagLabels, maxStreams, logger)
 }
 
-func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger log.Logger) (*client, error) {
+func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, maxStreams int, logger log.Logger) (*client, error) {
 
 	if err := validateConfig(cfg); err != nil {
 		return nil, err
 	}
-	//if cfg.URL.URL == nil {
-	//	return nil, errors.New("client needs target URL")
-	//}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -202,6 +203,7 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, logger lo
 		cancel:         cancel,
 
 		picker: accessPicker,
+		maxStreams:     maxStreams,
 	}
 	if cfg.Name != "" {
 		c.name = cfg.Name
@@ -251,8 +253,8 @@ func validateConfig(cfg Config) error {
 }
 
 // NewWithTripperware creates a new Loki client with a custom tripperware.
-func NewWithTripperware(metrics *Metrics, cfg Config, streamLagLabels []string, logger log.Logger, tp Tripperware) (Client, error) {
-	c, err := newClient(metrics, cfg, streamLagLabels, logger)
+func NewWithTripperware(metrics *Metrics, cfg Config, streamLagLabels []string, maxStreams int, logger log.Logger, tp Tripperware) (Client, error) {
+	c, err := newClient(metrics, cfg, streamLagLabels, maxStreams, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +304,7 @@ func (c *client) run() {
 
 			// If the batch doesn't exist yet, we create a new one with the entry
 			if !ok {
-				batches[tenantID] = newBatch(e)
+				batches[tenantID] = newBatch(c.maxStreams, e)
 				break
 			}
 
@@ -311,13 +313,17 @@ func (c *client) run() {
 			if batch.sizeBytesAfter(e) > c.cfg.BatchSize {
 				c.sendBatch(tenantID, batch)
 
-				batches[tenantID] = newBatch(e)
+				batches[tenantID] = newBatch(c.maxStreams, e)
 				break
 			}
 
 			// The max size of the batch isn't reached, so we can add the entry
-			batch.add(e)
-
+			err := batch.add(e)
+			if err != nil {
+				level.Error(c.logger).Log("msg", "batch add err", "error", err)
+				c.metrics.droppedEntries.WithLabelValues(c.cfg.URL.Host).Inc()
+				return
+			}
 		case <-maxWaitCheck.C:
 			// Send all batches whose max wait time has been reached
 			for tenantID, batch := range batches {
@@ -372,6 +378,8 @@ func (c *client) sendBatch(tenantID string, batch *batch) {
 					level.Warn(c.logger).Log("msg", "error converting stream label string to label.Labels, cannot update lagging metric", "error", err)
 					return
 				}
+
+				//nolint:staticcheck
 				lblSet := make(prometheus.Labels)
 				for _, lbl := range c.streamLagLabels {
 					// label from streamLagLabels may not be found but we still need an empty value
@@ -384,6 +392,8 @@ func (c *client) sendBatch(tenantID string, batch *batch) {
 					}
 					lblSet[lbl] = value
 				}
+
+				//nolint:staticcheck
 				if lblSet != nil {
 					// always set host
 					lblSet[HostLabel] = c.cfg.URL.Host

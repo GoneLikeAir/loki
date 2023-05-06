@@ -70,7 +70,7 @@ func TestLokiPushTarget(t *testing.T) {
 		},
 	}
 
-	pt, err := NewPushTarget(logger, eh, rlbl, "job1", config, nil)
+	pt, err := NewPushTarget(logger, eh, rlbl, "job1", config)
 	require.NoError(t, err)
 
 	// Build a client to send logs
@@ -85,7 +85,7 @@ func TestLokiPushTarget(t *testing.T) {
 		BatchSize: 100 * 1024,
 	}
 	m := client.NewMetrics(prometheus.DefaultRegisterer, nil)
-	pc, err := client.New(m, ccfg, nil, logger)
+	pc, err := client.New(m, ccfg, nil, 0, logger)
 	require.NoError(t, err)
 	defer pc.Stop()
 
@@ -163,7 +163,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 		KeepTimestamp: true,
 	}
 
-	pt, err := NewPushTarget(logger, eh, []*relabel.Config{}, "job2", config, nil)
+	pt, err := NewPushTarget(logger, eh, []*relabel.Config{}, "job2", config)
 	require.NoError(t, err)
 
 	// Send some logs

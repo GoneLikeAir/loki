@@ -11,9 +11,13 @@ import (
 	"unsafe"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/opentracing/opentracing-go"
+	otlog "github.com/opentracing/opentracing-go/log"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/timestamp"
 
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 	"github.com/grafana/loki/pkg/util"
 )
 
@@ -213,4 +217,102 @@ func SampleJsoniterDecode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 func init() {
 	jsoniter.RegisterTypeEncoderFunc("logproto.LegacySample", SampleJsoniterEncode, func(unsafe.Pointer) bool { return false })
 	jsoniter.RegisterTypeDecoderFunc("logproto.LegacySample", SampleJsoniterDecode)
+}
+
+// Combine unique values from multiple LabelResponses into a single, sorted LabelResponse.
+func MergeLabelResponses(responses []*LabelResponse) (*LabelResponse, error) {
+	if len(responses) == 0 {
+		return &LabelResponse{}, nil
+	} else if len(responses) == 1 {
+		return responses[0], nil
+	}
+
+	unique := map[string]struct{}{}
+
+	for _, r := range responses {
+		for _, v := range r.Values {
+			if _, ok := unique[v]; !ok {
+				unique[v] = struct{}{}
+			} else {
+				continue
+			}
+		}
+	}
+
+	result := &LabelResponse{Values: make([]string, 0, len(unique))}
+
+	for value := range unique {
+		result.Values = append(result.Values, value)
+	}
+
+	// Sort the unique values before returning because we can't rely on map key ordering
+	sort.Strings(result.Values)
+
+	return result, nil
+}
+
+// Combine unique label sets from multiple SeriesResponse and return a single SeriesResponse.
+func MergeSeriesResponses(responses []*SeriesResponse) (*SeriesResponse, error) {
+	if len(responses) == 0 {
+		return &SeriesResponse{}, nil
+	} else if len(responses) == 1 {
+		return responses[0], nil
+	}
+
+	result := &SeriesResponse{
+		Series: make([]SeriesIdentifier, 0, len(responses)),
+	}
+
+	for _, r := range responses {
+		result.Series = append(result.Series, r.Series...)
+	}
+
+	return result, nil
+}
+
+// Satisfy definitions.Request
+
+// GetStart returns the start timestamp of the request in milliseconds.
+func (m *IndexStatsRequest) GetStart() int64 {
+	return int64(m.From)
+}
+
+// GetEnd returns the end timestamp of the request in milliseconds.
+func (m *IndexStatsRequest) GetEnd() int64 {
+	return int64(m.Through)
+}
+
+// GetStep returns the step of the request in milliseconds.
+func (m *IndexStatsRequest) GetStep() int64 { return 0 }
+
+// GetQuery returns the query of the request.
+func (m *IndexStatsRequest) GetQuery() string {
+	return m.Matchers
+}
+
+// GetCachingOptions returns the caching options.
+func (m *IndexStatsRequest) GetCachingOptions() (res definitions.CachingOptions) { return }
+
+// WithStartEnd clone the current request with different start and end timestamp.
+func (m *IndexStatsRequest) WithStartEnd(startTime int64, endTime int64) definitions.Request {
+	new := *m
+	new.From = model.TimeFromUnixNano(startTime * int64(time.Millisecond))
+	new.Through = model.TimeFromUnixNano(endTime * int64(time.Millisecond))
+	return &new
+}
+
+// WithQuery clone the current request with a different query.
+func (m *IndexStatsRequest) WithQuery(query string) definitions.Request {
+	new := *m
+	new.Matchers = query
+	return &new
+}
+
+// LogToSpan writes information about this request to an OpenTracing span
+func (m *IndexStatsRequest) LogToSpan(sp opentracing.Span) {
+	sp.LogFields(
+		otlog.String("query", m.GetQuery()),
+		otlog.String("start", timestamp.Time(m.GetStart()).String()),
+		otlog.String("end", timestamp.Time(m.GetEnd()).String()),
+	)
 }

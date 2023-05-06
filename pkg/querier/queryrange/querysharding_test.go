@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
+
 	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
@@ -18,12 +20,12 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logql"
 	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/config"
 	"github.com/grafana/loki/pkg/util"
 )
 
 var (
-	nilShardingMetrics = logql.NewShardingMetrics(nil)
+	nilShardingMetrics = logql.NewShardMapperMetrics(nil)
 	defaultReq         = func() *LokiRequest {
 		return &LokiRequest{
 			Limit:     100,
@@ -39,6 +41,9 @@ var (
 			Direction: logproto.BACKWARD,
 			Limit:     defaultReq().Limit,
 			Version:   1,
+			Headers: []definitions.PrometheusResponseHeader{
+				{Name: "Header", Values: []string{"value"}},
+			},
 			Data: LokiData{
 				ResultType: loghttp.ResultTypeStream,
 				Result: []logproto.Stream{
@@ -57,6 +62,9 @@ var (
 			Direction: logproto.BACKWARD,
 			Limit:     100,
 			Version:   1,
+			Headers: []definitions.PrometheusResponseHeader{
+				{Name: "Header", Values: []string{"value"}},
+			},
 			Data: LokiData{
 				ResultType: loghttp.ResultTypeStream,
 				Result: []logproto.Stream{
@@ -116,6 +124,7 @@ func Test_shardSplitter(t *testing.T) {
 				now:  func() time.Time { return end },
 				limits: fakeLimits{
 					minShardingLookback: tc.lookback,
+					queryTimeout:        time.Minute,
 					maxQueryParallelism: 1,
 				},
 			}
@@ -149,18 +158,22 @@ func Test_astMapper(t *testing.T) {
 
 	mware := newASTMapperware(
 		ShardingConfigs{
-			chunk.PeriodConfig{
+			config.PeriodConfig{
 				RowShards: 2,
 			},
 		},
 		handler,
 		log.NewNopLogger(),
 		nilShardingMetrics,
-		fakeLimits{maxSeries: math.MaxInt32, maxQueryParallelism: 1},
+		fakeLimits{maxSeries: math.MaxInt32, maxQueryParallelism: 1, queryTimeout: time.Second},
 	)
 
-	resp, err := mware.Do(context.Background(), defaultReq().WithQuery(`{food="bar"}`))
+	resp, err := mware.Do(user.InjectOrgID(context.Background(), "1"), defaultReq().WithQuery(`{food="bar"}`))
 	require.Nil(t, err)
+
+	require.Equal(t, []*definitions.PrometheusResponseHeader{
+		{Name: "Header", Values: []string{"value"}},
+	}, resp.GetHeaders())
 
 	expected, err := LokiCodec.MergeResponse(lokiResps...)
 	sort.Sort(logproto.Streams(expected.(*LokiResponse).Data.Result))
@@ -178,7 +191,7 @@ func Test_ShardingByPass(t *testing.T) {
 
 	mware := newASTMapperware(
 		ShardingConfigs{
-			chunk.PeriodConfig{
+			config.PeriodConfig{
 				RowShards: 2,
 			},
 		},
@@ -188,7 +201,7 @@ func Test_ShardingByPass(t *testing.T) {
 		fakeLimits{maxSeries: math.MaxInt32, maxQueryParallelism: 1},
 	)
 
-	_, err := mware.Do(context.Background(), defaultReq().WithQuery(`1+1`))
+	_, err := mware.Do(user.InjectOrgID(context.Background(), "1"), defaultReq().WithQuery(`1+1`))
 	require.Nil(t, err)
 	require.Equal(t, called, 1)
 }
@@ -249,7 +262,7 @@ func Test_InstantSharding(t *testing.T) {
 	shards := []string{}
 
 	sharding := NewQueryShardMiddleware(log.NewNopLogger(), ShardingConfigs{
-		chunk.PeriodConfig{
+		config.PeriodConfig{
 			RowShards: 3,
 		},
 	}, queryrangebase.NewInstrumentMiddlewareMetrics(nil),
@@ -257,6 +270,7 @@ func Test_InstantSharding(t *testing.T) {
 		fakeLimits{
 			maxSeries:           math.MaxInt32,
 			maxQueryParallelism: 10,
+			queryTimeout:        time.Second,
 		})
 	response, err := sharding.Wrap(queryrangebase.HandlerFunc(func(c context.Context, r queryrangebase.Request) (queryrangebase.Response, error) {
 		lock.Lock()
@@ -305,7 +319,7 @@ func Test_InstantSharding(t *testing.T) {
 
 func Test_SeriesShardingHandler(t *testing.T) {
 	sharding := NewSeriesQueryShardMiddleware(log.NewNopLogger(), ShardingConfigs{
-		chunk.PeriodConfig{
+		config.PeriodConfig{
 			RowShards: 3,
 		},
 	},

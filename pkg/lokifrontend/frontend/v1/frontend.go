@@ -16,10 +16,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/httpgrpc"
 
+	"github.com/grafana/dskit/tenant"
+
 	"github.com/grafana/loki/pkg/lokifrontend/frontend/v1/frontendv1pb"
 	"github.com/grafana/loki/pkg/querier/stats"
 	"github.com/grafana/loki/pkg/scheduler/queue"
-	"github.com/grafana/loki/pkg/tenant"
 	"github.com/grafana/loki/pkg/util"
 	lokigrpc "github.com/grafana/loki/pkg/util/httpgrpc"
 	"github.com/grafana/loki/pkg/util/validation"
@@ -117,6 +118,7 @@ func New(cfg Config, limits Limits, log log.Logger, registerer prometheus.Regist
 }
 
 func (f *Frontend) starting(ctx context.Context) error {
+	f.subservicesWatcher = services.NewFailureWatcher()
 	f.subservicesWatcher.WatchManager(f.subservices)
 
 	if err := services.StartManagerAndAwaitHealthy(ctx, f.subservices); err != nil {

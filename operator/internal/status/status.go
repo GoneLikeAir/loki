@@ -3,8 +3,8 @@ package status
 import (
 	"context"
 
-	"github.com/ViaQ/logerr/kverrors"
-	lokiv1beta1 "github.com/grafana/loki/operator/api/v1beta1"
+	"github.com/ViaQ/logerr/v2/kverrors"
+	lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
 	"github.com/grafana/loki/operator/internal/external/k8s"
 
 	corev1 "k8s.io/api/core/v1"
@@ -20,7 +20,7 @@ func Refresh(ctx context.Context, k k8s.Client, req ctrl.Request) error {
 		return err
 	}
 
-	var s lokiv1beta1.LokiStack
+	var s lokiv1.LokiStack
 	if err := k.Get(ctx, req.NamespacedName, &s); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -35,13 +35,19 @@ func Refresh(ctx context.Context, k k8s.Client, req ctrl.Request) error {
 		len(cs.Distributor[corev1.PodFailed]) +
 		len(cs.Ingester[corev1.PodFailed]) +
 		len(cs.Querier[corev1.PodFailed]) +
-		len(cs.QueryFrontend[corev1.PodFailed])
+		len(cs.QueryFrontend[corev1.PodFailed]) +
+		len(cs.Gateway[corev1.PodFailed]) +
+		len(cs.IndexGateway[corev1.PodFailed]) +
+		len(cs.Ruler[corev1.PodFailed])
 
 	unknown := len(cs.Compactor[corev1.PodUnknown]) +
 		len(cs.Distributor[corev1.PodUnknown]) +
 		len(cs.Ingester[corev1.PodUnknown]) +
 		len(cs.Querier[corev1.PodUnknown]) +
-		len(cs.QueryFrontend[corev1.PodUnknown])
+		len(cs.QueryFrontend[corev1.PodUnknown]) +
+		len(cs.Gateway[corev1.PodUnknown]) +
+		len(cs.IndexGateway[corev1.PodUnknown]) +
+		len(cs.Ruler[corev1.PodUnknown])
 
 	if failed != 0 || unknown != 0 {
 		return SetFailedCondition(ctx, k, req)
@@ -52,7 +58,10 @@ func Refresh(ctx context.Context, k k8s.Client, req ctrl.Request) error {
 		len(cs.Distributor[corev1.PodPending]) +
 		len(cs.Ingester[corev1.PodPending]) +
 		len(cs.Querier[corev1.PodPending]) +
-		len(cs.QueryFrontend[corev1.PodPending])
+		len(cs.QueryFrontend[corev1.PodPending]) +
+		len(cs.Gateway[corev1.PodPending]) +
+		len(cs.IndexGateway[corev1.PodPending]) +
+		len(cs.Ruler[corev1.PodPending])
 
 	if pending != 0 {
 		return SetPendingCondition(ctx, k, req)

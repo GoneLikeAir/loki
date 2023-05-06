@@ -3,15 +3,18 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/ViaQ/logerr/log"
-	"github.com/grafana/loki/operator/api/v1beta1"
+	configv1 "github.com/grafana/loki/operator/apis/config/v1"
+	lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
 	"github.com/grafana/loki/operator/internal/manifests"
 	"github.com/grafana/loki/operator/internal/manifests/storage"
+
+	"github.com/ViaQ/logerr/v2/log"
+	"github.com/go-logr/logr"
+	openshiftv1 "github.com/openshift/api/config/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -21,7 +24,7 @@ type config struct {
 	Namespace string
 	Image     string
 
-	featureFlags  manifests.FeatureFlags
+	featureFlags  configv1.FeatureGates
 	objectStorage storage.Options
 
 	crFilepath string
@@ -34,12 +37,16 @@ func (c *config) registerFlags(f *flag.FlagSet) {
 	f.StringVar(&c.Namespace, "namespace", "", "Namespace to deploy to")
 	f.StringVar(&c.Image, "image", manifests.DefaultContainerImage, "The Loki image pull spec loation.")
 	// Feature flags
-	c.featureFlags = manifests.FeatureFlags{}
-	f.BoolVar(&c.featureFlags.EnableCertificateSigningService, "with-cert-signing-service", false, "Enable usage of cert-signing service for scraping prometheus metrics via TLS.")
-	f.BoolVar(&c.featureFlags.EnableServiceMonitors, "with-service-monitors", false, "Enable service monitors for all LokiStack components.")
-	f.BoolVar(&c.featureFlags.EnableTLSServiceMonitorConfig, "with-tls-service-monitors", false, "Enable TLS endpoint for service monitors.")
-	f.BoolVar(&c.featureFlags.EnablePrometheusAlerts, "with-prometheus-alerts", false, "Enables prometheus alerts")
-	f.BoolVar(&c.featureFlags.EnableGateway, "with-lokistack-gateway", false, "Enables the manifest creation for the entire lokistack-gateway.")
+	c.featureFlags = configv1.FeatureGates{}
+	c.featureFlags.OpenShift = configv1.OpenShiftFeatureGates{}
+	f.BoolVar(&c.featureFlags.OpenShift.ServingCertsService, "with-serving-certs-service", false, "Enable usage of serving certs service on OpenShift.")
+	f.BoolVar(&c.featureFlags.ServiceMonitors, "with-service-monitors", false, "Enable service monitors for all LokiStack components.")
+	f.BoolVar(&c.featureFlags.HTTPEncryption, "with-http-tls-services", false, "Enables TLS for all LokiStack GRPC services.")
+	f.BoolVar(&c.featureFlags.GRPCEncryption, "with-grpc-tls-services", false, "Enables TLS for all LokiStack HTTP services.")
+	f.BoolVar(&c.featureFlags.ServiceMonitorTLSEndpoints, "with-service-monitor-tls-endpoints", false, "Enable TLS endpoint for service monitors.")
+	f.BoolVar(&c.featureFlags.LokiStackAlerts, "with-lokistack-alerts", false, "Enables prometheus alerts")
+	f.BoolVar(&c.featureFlags.LokiStackGateway, "with-lokistack-gateway", false, "Enables the manifest creation for the entire lokistack-gateway.")
+	f.BoolVar(&c.featureFlags.RuntimeSeccompProfile, "with-runtime-seccomp-profile", false, "Enables the usage of the runtime/default seccomp profile for pods and containers.")
 	// Object storage options
 	c.objectStorage = storage.Options{
 		S3: &storage.S3StorageConfig{},
@@ -52,9 +59,11 @@ func (c *config) registerFlags(f *flag.FlagSet) {
 	// Input and output file/dir options
 	f.StringVar(&c.crFilepath, "custom-resource.path", "", "Path to a custom resource YAML file.")
 	f.StringVar(&c.writeToDir, "output.write-dir", "", "write each file to the specified directory.")
+	// TLS profile option
+	f.StringVar(&c.featureFlags.TLSProfile, "tls-profile", "", "The TLS security Profile configuration.")
 }
 
-func (c *config) validateFlags() {
+func (c *config) validateFlags(log logr.Logger) {
 	if cfg.crFilepath == "" {
 		log.Info("-custom.resource.path flag is required")
 		os.Exit(1)
@@ -85,7 +94,7 @@ func (c *config) validateFlags() {
 		os.Exit(1)
 	}
 	// Validate feature flags
-	if cfg.featureFlags.EnablePrometheusAlerts && !cfg.featureFlags.EnableServiceMonitors {
+	if cfg.featureFlags.LokiStackAlerts && !cfg.featureFlags.ServiceMonitors {
 		log.Info("-with-prometheus-alerts flag requires -with-service-monitors")
 		os.Exit(1)
 	}
@@ -94,28 +103,37 @@ func (c *config) validateFlags() {
 var cfg *config
 
 func init() {
-	log.Init("loki-broker")
 	cfg = &config{}
 }
 
 func main() {
+	logger := log.NewLogger("loki-broker")
+
 	f := flag.NewFlagSet("", flag.ExitOnError)
 	cfg.registerFlags(f)
 	if err := f.Parse(os.Args[1:]); err != nil {
-		log.Error(err, "failed to parse flags")
+		logger.Error(err, "failed to parse flags")
 	}
 
-	cfg.validateFlags()
+	cfg.validateFlags(logger)
 
-	b, err := ioutil.ReadFile(cfg.crFilepath)
+	b, err := os.ReadFile(cfg.crFilepath)
 	if err != nil {
-		log.Info("failed to read custom resource file", "path", cfg.crFilepath)
+		logger.Info("failed to read custom resource file", "path", cfg.crFilepath)
 		os.Exit(1)
 	}
 
-	ls := &v1beta1.LokiStack{}
+	ls := &lokiv1.LokiStack{}
 	if err = yaml.Unmarshal(b, ls); err != nil {
-		log.Error(err, "failed to unmarshal LokiStack CR", "path", cfg.crFilepath)
+		logger.Error(err, "failed to unmarshal LokiStack CR", "path", cfg.crFilepath)
+		os.Exit(1)
+	}
+
+	if cfg.featureFlags.TLSProfile != "" &&
+		cfg.featureFlags.TLSProfile != string(configv1.TLSProfileOldType) &&
+		cfg.featureFlags.TLSProfile != string(configv1.TLSProfileIntermediateType) &&
+		cfg.featureFlags.TLSProfile != string(configv1.TLSProfileModernType) {
+		logger.Error(err, "failed to parse TLS profile. Allowed values: 'Old', 'Intermediate', 'Modern'", "value", cfg.featureFlags.TLSProfile)
 		os.Exit(1)
 	}
 
@@ -125,33 +143,45 @@ func main() {
 		Namespace:     cfg.Namespace,
 		Image:         cfg.Image,
 		Stack:         ls.Spec,
-		Flags:         cfg.featureFlags,
+		Gates:         cfg.featureFlags,
 		ObjectStorage: cfg.objectStorage,
 	}
 
 	if optErr := manifests.ApplyDefaultSettings(&opts); optErr != nil {
-		log.Error(optErr, "failed to conform options to build settings")
+		logger.Error(optErr, "failed to conform options to build settings")
+		os.Exit(1)
+	}
+
+	var tlsSecurityProfile *openshiftv1.TLSSecurityProfile
+	if cfg.featureFlags.TLSProfile != "" {
+		tlsSecurityProfile = &openshiftv1.TLSSecurityProfile{
+			Type: openshiftv1.TLSProfileType(cfg.featureFlags.TLSProfile),
+		}
+	}
+
+	if optErr := manifests.ApplyTLSSettings(&opts, tlsSecurityProfile); optErr != nil {
+		logger.Error(optErr, "failed to conform options to tls profile settings")
 		os.Exit(1)
 	}
 
 	objects, err := manifests.BuildAll(opts)
 	if err != nil {
-		log.Error(err, "failed to build manifests")
+		logger.Error(err, "failed to build manifests")
 		os.Exit(1)
 	}
 
 	for _, o := range objects {
 		b, err := yaml.Marshal(o)
 		if err != nil {
-			log.Error(err, "failed to marshal manifest", "name", o.GetName(), "kind", o.GetObjectKind())
+			logger.Error(err, "failed to marshal manifest", "name", o.GetName(), "kind", o.GetObjectKind())
 			continue
 		}
 
 		if cfg.writeToDir != "" {
 			basename := fmt.Sprintf("%s-%s.yaml", o.GetObjectKind().GroupVersionKind().Kind, o.GetName())
 			fname := strings.ToLower(path.Join(cfg.writeToDir, basename))
-			if err := ioutil.WriteFile(fname, b, 0o644); err != nil {
-				log.Error(err, "failed to write file to directory", "path", fname)
+			if err := os.WriteFile(fname, b, 0o644); err != nil {
+				logger.Error(err, "failed to write file to directory", "path", fname)
 				os.Exit(1)
 			}
 		} else {

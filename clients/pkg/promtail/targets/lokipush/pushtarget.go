@@ -2,7 +2,7 @@ package lokipush
 
 import (
 	"bufio"
-	"flag"
+	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/imdario/mergo"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -19,10 +18,11 @@ import (
 	promql_parser "github.com/prometheus/prometheus/promql/parser"
 	"github.com/weaveworks/common/server"
 
-	"github.com/grafana/loki/pkg/tenant"
+	"github.com/grafana/dskit/tenant"
 
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
 	"github.com/grafana/loki/pkg/loghttp/push"
@@ -37,7 +37,6 @@ type PushTarget struct {
 	relabelConfig []*relabel.Config
 	jobName       string
 	server        *server.Server
-	registerer    prometheus.Registerer
 }
 
 func NewPushTarget(logger log.Logger,
@@ -45,7 +44,6 @@ func NewPushTarget(logger log.Logger,
 	relabel []*relabel.Config,
 	jobName string,
 	config *scrapeconfig.PushTargetConfig,
-	reg prometheus.Registerer,
 ) (*PushTarget, error) {
 
 	pt := &PushTarget{
@@ -54,29 +52,16 @@ func NewPushTarget(logger log.Logger,
 		relabelConfig: relabel,
 		jobName:       jobName,
 		config:        config,
-		registerer:    reg,
 	}
 
-	// Bit of a chicken and egg problem trying to register the defaults and apply overrides from the loaded config.
-	// First create an empty config and set defaults.
-	defaults := server.Config{}
-	defaults.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	// Then apply any config values loaded as overrides to the defaults.
-	if err := mergo.Merge(&defaults, config.Server, mergo.WithOverride); err != nil {
-		level.Error(logger).Log("msg", "failed to parse configs and override defaults when configuring push server", "err", err)
-	}
-	// The merge won't overwrite with a zero value but in the case of ports 0 value
-	// indicates the desire for a random port so reset these to zero if the incoming config val is 0
-	if config.Server.HTTPListenPort == 0 {
-		defaults.HTTPListenPort = 0
-	}
-	if config.Server.GRPCListenPort == 0 {
-		defaults.GRPCListenPort = 0
+	mergedServerConfigs, err := serverutils.MergeWithDefaults(config.Server)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring loki push target: %w", err)
 	}
 	// Set the config to the new combined config.
-	config.Server = defaults
+	config.Server = mergedServerConfigs
 
-	err := pt.run()
+	err = pt.run()
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +77,9 @@ func (t *PushTarget) run() error {
 	// We don't want the /debug and /metrics endpoints running
 	t.config.Server.RegisterInstrumentation = false
 
-	util_log.InitLogger(&t.config.Server, t.registerer)
+	// The logger registers a metric which will cause a duplicate registry panic unless we provide an empty registry
+	// The metric created is for counting log lines and isn't likely to be missed.
+	util_log.InitLogger(&t.config.Server, prometheus.NewRegistry(), true, false)
 
 	srv, err := server.New(t.config.Server)
 	if err != nil {
@@ -139,8 +126,8 @@ func (t *PushTarget) handleLoki(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Apply relabeling
-		processed := relabel.Process(lb.Labels(), t.relabelConfig...)
-		if processed == nil || len(processed) == 0 {
+		processed := relabel.Process(lb.Labels(nil), t.relabelConfig...)
+		if len(processed) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}

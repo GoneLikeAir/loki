@@ -15,6 +15,8 @@ This document describes the rules and governance of the project. It is meant to 
 
 - **The Loki project**: The sum of all activities performed under this governance, concerning one or more repositories or the community.
 
+- **The Loki SIG (Special Interest Group) Operator**: The sum of all activities performed under this governance, concerning the repository subfolder `operator` or its specific community.
+
 ## Values
 
 The Loki developers and community are expected to follow the values defined in the [Code of Conduct][coc]. Furthermore, the Loki community strives for kindness, giving feedback effectively, and building a welcoming environment. The Loki developers generally decide by consensus and only resort to conflict resolution by a majority vote if consensus cannot be reached.
@@ -56,11 +58,19 @@ The current team members are:
 - Joe Elliott - [joe-elliott](https://github.com/joe-elliott) ([Grafana Labs](https://grafana.com/))
 - Karsten Jeschkies - [jeschkies](https://github.com/jeschkies) ([Grafana Labs](https://grafana.com/))
 - Kaviraj Kanagaraj - [kavirajk](https://github.com/kavirajk) ([Grafana Labs](https://grafana.com/))
+- Li Guozhong - [liguozhong](https://github.com/liguozhong) ([Alibaba Cloud](https://alibabacloud.com/))
 - Owen Diehl - [owen-d](https://github.com/owen-d) ([Grafana Labs](https://grafana.com/))
 - Periklis Tsirakidis - [periklis](https://github.com/periklis) ([Red Hat](https://www.redhat.com/))
 - Sandeep Sukhani - [sandeepsukhani](https://github.com/sandeepsukhani) ([Grafana Labs](https://grafana.com/))
 - Tom Braack - [sh0rez](https://github.com/sh0rez) ([Grafana Labs](https://grafana.com/))
 - Tom Wilkie - [tomwilkie](https://github.com/tomwilkie) ([Grafana Labs](https://grafana.com/))
+
+The current Loki SIG Operator team members are:
+- Brett Jones - [blockloop](https://github.com/blockloop/) ([InVision](https://www.invisionapp.com/))
+- Cyril Tovena - [cyriltovena](https://github.com/cyriltovena) ([Grafana Labs](https://grafana.com/))
+- Gerard Vanloo - [Red-GV](https://github.com/Red-GV) ([IBM](https://www.ibm.com))
+- Periklis Tsirakidis - [periklis](https://github.com/periklis) ([Red Hat](https://www.redhat.com))
+- Sashank Agrawal - [sasagarw](https://github.com/sasagarw/) ([Red Hat](https://www.redhat.com))
 
 ### Maintainers
 
@@ -159,9 +169,9 @@ The ex-member is
 If needed, we reserve the right to publicly announce removal.
 
 [announce]: https://groups.google.com/forum/#!forum/loki-announce
-[coc]: https://github.com/grafana/loki/blob/master/CODE_OF_CONDUCT.md
+[coc]: https://github.com/grafana/loki/blob/main/CODE_OF_CONDUCT.md
 [devs]: https://groups.google.com/forum/#!forum/loki-developers
-[maintainers]: https://github.com/grafana/loki/blob/master/MAINTAINERS
+[maintainers]: https://github.com/grafana/loki/blob/main/MAINTAINERS.md
 [rough]: https://tools.ietf.org/html/rfc7282
 [team]: https://groups.google.com/forum/#!forum/loki-team
 [users]: https://groups.google.com/forum/#!forum/loki-users

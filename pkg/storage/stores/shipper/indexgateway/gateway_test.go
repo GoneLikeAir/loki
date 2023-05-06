@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/indexgateway/indexgatewaypb"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
 	"github.com/grafana/loki/pkg/storage/stores/shipper/util"
 	util_math "github.com/grafana/loki/pkg/util/math"
 )
@@ -31,7 +31,7 @@ type mockBatch struct {
 	size int
 }
 
-func (r *mockBatch) Iterator() chunk.ReadBatchIterator {
+func (r *mockBatch) Iterator() index.ReadBatchIterator {
 	return &mockBatchIter{
 		curr: -1,
 		size: r.size,
@@ -57,10 +57,10 @@ func (b *mockBatchIter) Value() []byte {
 
 type mockQueryIndexServer struct {
 	grpc.ServerStream
-	callback func(resp *indexgatewaypb.QueryIndexResponse)
+	callback func(resp *logproto.QueryIndexResponse)
 }
 
-func (m *mockQueryIndexServer) Send(resp *indexgatewaypb.QueryIndexResponse) error {
+func (m *mockQueryIndexServer) Send(resp *logproto.QueryIndexResponse) error {
 	m.callback(resp)
 	return nil
 }
@@ -70,11 +70,11 @@ func (m *mockQueryIndexServer) Context() context.Context {
 }
 
 type mockIndexClient struct {
-	chunk.IndexClient
+	index.Client
 	response *mockBatch
 }
 
-func (m mockIndexClient) QueryPages(ctx context.Context, queries []chunk.IndexQuery, callback chunk.QueryPagesCallback) error {
+func (m mockIndexClient) QueryPages(ctx context.Context, queries []index.Query, callback index.QueryPagesCallback) error {
 	for _, query := range queries {
 		callback(query, m.response)
 	}
@@ -90,8 +90,8 @@ func TestGateway_QueryIndex(t *testing.T) {
 	var expectedRanges []batchRange
 
 	// the response should have index entries between start and end from batchRange at index 0 of expectedRanges
-	var server indexgatewaypb.IndexGateway_QueryIndexServer = &mockQueryIndexServer{
-		callback: func(resp *indexgatewaypb.QueryIndexResponse) {
+	var server logproto.IndexGateway_QueryIndexServer = &mockQueryIndexServer{
+		callback: func(resp *logproto.QueryIndexResponse) {
 			require.Equal(t, expectedQueryKey, resp.QueryKey)
 
 			require.True(t, len(expectedRanges) > 0)
@@ -108,10 +108,10 @@ func TestGateway_QueryIndex(t *testing.T) {
 		},
 	}
 
-	gateway := gateway{}
+	gateway := Gateway{}
 	responseSizes := []int{0, 99, maxIndexEntriesPerResponse, 2 * maxIndexEntriesPerResponse, 5*maxIndexEntriesPerResponse - 1}
 	for i, responseSize := range responseSizes {
-		query := chunk.IndexQuery{
+		query := index.Query{
 			TableName:        fmt.Sprintf("%s%d", tableNamePrefix, i),
 			HashValue:        fmt.Sprintf("%s%d", hashValuePrefix, i),
 			RangeValuePrefix: []byte(fmt.Sprintf("%s%d", rangeValuePrefixPrefix, i)),
@@ -127,9 +127,9 @@ func TestGateway_QueryIndex(t *testing.T) {
 			})
 		}
 		expectedQueryKey = util.QueryKey(query)
+		gateway.indexClient = mockIndexClient{response: &mockBatch{size: responseSize}}
 
-		gateway.indexQuerier = mockIndexClient{response: &mockBatch{size: responseSize}}
-		err := gateway.QueryIndex(&indexgatewaypb.QueryIndexRequest{Queries: []*indexgatewaypb.IndexQuery{{
+		err := gateway.QueryIndex(&logproto.QueryIndexRequest{Queries: []*logproto.IndexQuery{{
 			TableName:        query.TableName,
 			HashValue:        query.HashValue,
 			RangeValuePrefix: query.RangeValuePrefix,

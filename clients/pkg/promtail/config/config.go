@@ -4,7 +4,13 @@ import (
 	"flag"
 	"fmt"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	dskit_flagext "github.com/grafana/dskit/flagext"
+
+	"github.com/grafana/loki/pkg/tracing"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
@@ -16,16 +22,23 @@ import (
 	"github.com/grafana/loki/pkg/util/flagext"
 )
 
+// Options contains cross-cutting promtail configurations
+type Options struct {
+	StreamLagLabels dskit_flagext.StringSliceCSV `mapstructure:"stream_lag_labels,omitempty" yaml:"stream_lag_labels,omitempty"`
+}
+
 // Config for promtail, describing what files to watch.
 type Config struct {
 	ServerConfig server.Config `yaml:"server,omitempty"`
 	// deprecated use ClientConfigs instead
 	ClientConfig    client.Config         `yaml:"client,omitempty"`
-	ClientConfigs   client.Configs        `yaml:"clients,omitempty"`
+	ClientConfigs   []client.Config       `yaml:"clients,omitempty"`
 	PositionsConfig positions.Config      `yaml:"positions,omitempty"`
 	ScrapeConfig    []scrapeconfig.Config `yaml:"scrape_configs,omitempty"`
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
-	LimitConfig     limit.Config          `yaml:"limit_config,omitempty"`
+	LimitsConfig    limit.Config          `yaml:"limits_config,omitempty"`
+	Options         Options               `yaml:"options,omitempty"`
+	Tracing         tracing.Config        `yaml:"tracing"`
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by
@@ -35,7 +48,8 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	c.ClientConfig.RegisterFlagsWithPrefix(prefix, f)
 	c.PositionsConfig.RegisterFlagsWithPrefix(prefix, f)
 	c.TargetConfig.RegisterFlagsWithPrefix(prefix, f)
-	c.LimitConfig.RegisterFlagsWithPrefix(prefix, f)
+	c.LimitsConfig.RegisterFlagsWithPrefix(prefix, f)
+	c.Tracing.RegisterFlagsWithPrefix(prefix, f)
 }
 
 // RegisterFlags registers flags.
@@ -51,12 +65,13 @@ func (c Config) String() string {
 	return string(b)
 }
 
-func (c *Config) Setup() {
+func (c *Config) Setup(l log.Logger) {
 	//if c.ClientConfig.URL.URL != nil {
 	// update by alexli
 	if c.ClientConfig.URL.URL != nil || c.ClientConfig.SendToWeMQ {
+		level.Warn(l).Log("msg", "use of CLI client.* and config file Client block are both deprecated in favour of the config file Clients block and will be removed in a future release")
 		// if a single client config is used we add it to the multiple client config for backward compatibility
-		c.ClientConfigs.Configs = append(c.ClientConfigs.Configs, c.ClientConfig)
+		c.ClientConfigs = append(c.ClientConfigs, c.ClientConfig)
 	}
 
 	// This is a bit crude but if the Loki Push API target is specified,
@@ -75,8 +90,8 @@ func (c *Config) Setup() {
 	// not typically the order of precedence, the assumption here is someone providing a specific config in
 	// yaml is doing so explicitly to make a key specific to a client.
 	if len(c.ClientConfig.ExternalLabels.LabelSet) > 0 {
-		for i := range c.ClientConfigs.Configs {
-			c.ClientConfigs.Configs[i].ExternalLabels = flagext.LabelSet{LabelSet: c.ClientConfig.ExternalLabels.LabelSet.Merge(c.ClientConfigs.Configs[i].ExternalLabels.LabelSet)}
+		for i := range c.ClientConfigs {
+			c.ClientConfigs[i].ExternalLabels = flagext.LabelSet{LabelSet: c.ClientConfig.ExternalLabels.LabelSet.Merge(c.ClientConfigs[i].ExternalLabels.LabelSet)}
 		}
 	}
 }

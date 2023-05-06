@@ -3,10 +3,11 @@ package client
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -22,12 +23,13 @@ import (
 )
 
 const (
-	queryPath       = "/loki/api/v1/query"
-	queryRangePath  = "/loki/api/v1/query_range"
-	labelsPath      = "/loki/api/v1/labels"
-	labelValuesPath = "/loki/api/v1/label/%s/values"
-	seriesPath      = "/loki/api/v1/series"
-	tailPath        = "/loki/api/v1/tail"
+	queryPath         = "/loki/api/v1/query"
+	queryRangePath    = "/loki/api/v1/query_range"
+	labelsPath        = "/loki/api/v1/labels"
+	labelValuesPath   = "/loki/api/v1/label/%s/values"
+	seriesPath        = "/loki/api/v1/series"
+	tailPath          = "/loki/api/v1/tail"
+	defaultAuthHeader = "Authorization"
 )
 
 var userAgent = fmt.Sprintf("loki-logcli/%s", build.Version)
@@ -58,6 +60,8 @@ type DefaultClient struct {
 	BearerTokenFile string
 	Retries         int
 	QueryTags       string
+	AuthHeader      string
+	ProxyURL        string
 }
 
 // Query uses the /api/v1/query endpoint to execute an instant query
@@ -189,6 +193,14 @@ func (c *DefaultClient) doRequest(path, query string, quiet bool, out interface{
 		TLSConfig: c.TLSConfig,
 	}
 
+	if c.ProxyURL != "" {
+		prox, err := url.Parse(c.ProxyURL)
+		if err != nil {
+			return err
+		}
+		clientConfig.ProxyURL = config.URL{URL: prox}
+	}
+
 	client, err := config.NewClientFromConfig(clientConfig, "promtail", config.WithHTTP2Disabled())
 	if err != nil {
 		return err
@@ -201,6 +213,7 @@ func (c *DefaultClient) doRequest(path, query string, quiet bool, out interface{
 	attempts := c.Retries + 1
 	success := false
 
+	respErrorMsg := ""
 	for attempts > 0 {
 		attempts--
 
@@ -210,18 +223,23 @@ func (c *DefaultClient) doRequest(path, query string, quiet bool, out interface{
 			continue
 		}
 		if resp.StatusCode/100 != 2 {
-			buf, _ := ioutil.ReadAll(resp.Body) // nolint
+			buf, _ := io.ReadAll(resp.Body) // nolint
 			log.Printf("Error response from server: %s (%v) attempts remaining: %d", string(buf), err, attempts)
 			if err := resp.Body.Close(); err != nil {
 				log.Println("error closing body", err)
 			}
+			respErrorMsg = string(buf)
 			continue
 		}
 		success = true
 		break
 	}
 	if !success {
-		return fmt.Errorf("Run out of attempts while querying the server")
+		msg := "Run out of attempts while querying the server"
+		if respErrorMsg != "" {
+			msg = fmt.Sprintf("%s; response: %s", msg, respErrorMsg)
+		}
+		return fmt.Errorf(msg)
 	}
 
 	defer func() {
@@ -236,8 +254,11 @@ func (c *DefaultClient) getHTTPRequestHeader() (http.Header, error) {
 	h := make(http.Header)
 
 	if c.Username != "" && c.Password != "" {
+		if c.AuthHeader == "" {
+			c.AuthHeader = defaultAuthHeader
+		}
 		h.Set(
-			"Authorization",
+			c.AuthHeader,
 			"Basic "+base64.StdEncoding.EncodeToString([]byte(c.Username+":"+c.Password)),
 		)
 	}
@@ -261,16 +282,23 @@ func (c *DefaultClient) getHTTPRequestHeader() (http.Header, error) {
 	}
 
 	if c.BearerToken != "" {
-		h.Set("Authorization", "Bearer "+c.BearerToken)
+		if c.AuthHeader == "" {
+			c.AuthHeader = defaultAuthHeader
+		}
+
+		h.Set(c.AuthHeader, "Bearer "+c.BearerToken)
 	}
 
 	if c.BearerTokenFile != "" {
-		b, err := ioutil.ReadFile(c.BearerTokenFile)
+		b, err := os.ReadFile(c.BearerTokenFile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to read authorization credentials file %s: %s", c.BearerTokenFile, err)
 		}
 		bearerToken := strings.TrimSpace(string(b))
-		h.Set("Authorization", "Bearer "+bearerToken)
+		if c.AuthHeader == "" {
+			c.AuthHeader = defaultAuthHeader
+		}
+		h.Set(c.AuthHeader, "Bearer "+bearerToken)
 	}
 	return h, nil
 }
@@ -303,12 +331,18 @@ func (c *DefaultClient) wsConnect(path, query string, quiet bool) (*websocket.Co
 		TLSClientConfig: tlsConfig,
 	}
 
+	if c.ProxyURL != "" {
+		ws.Proxy = func(req *http.Request) (*url.URL, error) {
+			return url.Parse(c.ProxyURL)
+		}
+	}
+
 	conn, resp, err := ws.Dial(us, h)
 	if err != nil {
 		if resp == nil {
 			return nil, err
 		}
-		buf, _ := ioutil.ReadAll(resp.Body) // nolint
+		buf, _ := io.ReadAll(resp.Body) // nolint
 		return nil, fmt.Errorf("Error response from server: %s (%v)", string(buf), err)
 	}
 
