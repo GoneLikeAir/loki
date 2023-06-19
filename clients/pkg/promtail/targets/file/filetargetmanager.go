@@ -360,7 +360,6 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				key = fmt.Sprintf("%s:%s", key, pathExclude)
 			}
 
-
 			if !s.aclManager.IsAllow(labels) {
 				//if t, ok := s.targets[key]; ok {
 				//	t.Stop()
@@ -388,7 +387,7 @@ func (s *targetSyncer) sync(groups []*targetgroup.Group, targetEventHandler chan
 				watcher = make(chan fsnotify.Event)
 				s.fileEventWatchers[wkey] = watcher
 			}
-			t, err := s.newTarget(wkey, string(pathExclude), s.aclManager.GetFilterOption, labels, discoveredLabels, watcher, targetEventHandler)
+			t, err := s.newTarget(wkey, string(pathExclude), s.aclManager.GetFilterOption, labels, discoveredLabels, watcher, targetEventHandler, s.globSearcher, s.aclManager.TailingCompressed())
 			if err != nil {
 				dropped = append(dropped, target.NewDroppedTarget(fmt.Sprintf("Failed to create target: %s", err.Error()), discoveredLabels))
 				level.Error(s.log).Log("msg", "Failed to create target", "key", key, "error", err)
@@ -464,8 +463,9 @@ func (s *targetSyncer) sendFileCreateEvent(event fsnotify.Event) {
 	}
 }
 
-func (s *targetSyncer) newTarget(path, pathExclude string, getFilterOptionFunc func(labels model.LabelSet) FilterCase,labels model.LabelSet, discoveredLabels model.LabelSet, fileEventWatcher chan fsnotify.Event, targetEventHandler chan fileTargetEvent) (*FileTarget, error) {
-	return NewFileTarget(s.metrics, s.log, s.entryHandler, s.positions, path, pathExclude, getFilterOptionFunc, labels, discoveredLabels, s.targetConfig, fileEventWatcher, targetEventHandler, s.encoding)
+func (s *targetSyncer) newTarget(path, pathExclude string, getFilterOptionFunc func(labels model.LabelSet) FilterCase, labels model.LabelSet, discoveredLabels model.LabelSet, fileEventWatcher chan fsnotify.Event, targetEventHandler chan fileTargetEvent, searcher *GlobSearcher, tailingCompressed bool) (*FileTarget, error) {
+	return NewFileTarget(s.metrics, s.log, s.entryHandler, s.positions, path, pathExclude, getFilterOptionFunc,
+		labels, discoveredLabels, s.targetConfig, fileEventWatcher, targetEventHandler, searcher, s.encoding, tailingCompressed)
 }
 
 func (s *targetSyncer) DroppedTargets() []target.Target {

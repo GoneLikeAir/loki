@@ -423,7 +423,7 @@ github.com/felixge/httpsnoop
 # github.com/fluent/fluent-bit-go v0.0.0-20190925192703-ea13c021720c
 ## explicit
 github.com/fluent/fluent-bit-go/output
-# github.com/fsnotify/fsnotify v1.5.4
+# github.com/fsnotify/fsnotify v1.6.0
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
 # github.com/fsouza/fake-gcs-server v1.7.0
@@ -688,7 +688,7 @@ github.com/hashicorp/serf/coordinate
 # github.com/heroku/x v0.0.50
 ## explicit; go 1.12
 github.com/heroku/x/logplex/encoding
-# github.com/hpcloud/tail v1.0.0 => github.com/grafana/tail v0.0.0-20221013162612-e88cf3c7a8f6
+# github.com/hpcloud/tail v1.0.0 => github.com/GoneLikeAir/grafana-tail v1.0.2
 ## explicit; go 1.13
 github.com/hpcloud/tail
 github.com/hpcloud/tail/ratelimiter
@@ -1802,7 +1802,7 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 # github.com/sercand/kuberesolver => github.com/sercand/kuberesolver v2.4.0+incompatible
-# github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20221013162612-e88cf3c7a8f6
+# github.com/hpcloud/tail => github.com/GoneLikeAir/grafana-tail v1.0.2
 # github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 # github.com/Azure/azure-storage-blob-go => github.com/MasslessParticle/azure-storage-blob-go v0.14.1-0.20220216145902-b5e698eff68e
 # k8s.io/api => k8s.io/api v0.23.6

@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
 	serverww "github.com/weaveworks/common/server"
+	_ "net/http/pprof"
 
 	"github.com/grafana/loki/clients/pkg/promtail/server/ui"
 	"github.com/grafana/loki/clients/pkg/promtail/targets"

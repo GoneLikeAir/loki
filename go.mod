@@ -1,6 +1,6 @@
 module github.com/grafana/loki
 
-go 1.19
+go 1.17
 
 require (
 	cloud.google.com/go/bigtable v1.3.0
@@ -173,7 +173,7 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
 	github.com/efficientgo/tools/core v0.0.0-20220225185207-fe763185946b // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -299,7 +299,8 @@ require (
 // Upgrade to run with gRPC 1.3.0 and above.
 replace github.com/sercand/kuberesolver => github.com/sercand/kuberesolver v2.4.0+incompatible
 
-replace github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20221013162612-e88cf3c7a8f6
+// replace github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20221013162612-e88cf3c7a8f6
+replace github.com/hpcloud/tail => github.com/GoneLikeAir/grafana-tail v1.0.2
 
 replace github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 

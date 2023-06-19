@@ -14,7 +14,7 @@ import (
 	"go.uber.org/atomic"
 	"net"
 	"os"
-	"sync"
+	pkgsync "sync"
 	"time"
 )
 
@@ -86,9 +86,9 @@ func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.
 		MaxSize:    1000,
 		Compress:   true,
 		cursor:     atomic.NewInt32(0),
-		mu:         sync.Mutex{},
+		mu:         pkgsync.Mutex{},
 		millCh:     make(chan bool),
-		startMill:  sync.Once{},
+		startMill:  pkgsync.Once{},
 		lastTime:   time.Now(),
 	}
 

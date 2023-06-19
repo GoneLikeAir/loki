@@ -17,6 +17,7 @@ type ACLConfig struct {
 	BlockList           map[string]string `json:"block_list,omitempty"`
 	FilterOptions       []FilterCase      `json:"filter_options,omitempty"`
 	DefaultFilterOption FilterCase        `json:"default_filter"`
+	TailingCompressed   bool              `json:"tailing_compressed,omitempty"`
 	ArchivedFormat      []string          `json:"archived_format"`
 }
 
@@ -46,6 +47,9 @@ func NewACLManager(logger log.Logger, aclFilepath string) *ACLManager {
 		cfg:         &ACLConfig{},
 		mux:         sync.Mutex{},
 	}
+	// load acl config at the beginning
+	level.Info(m.logger).Log("msg", "load acl config when starting")
+	m.syncOnce()
 	go m.sync()
 	return m
 }
@@ -58,6 +62,10 @@ func (m *ACLManager) sync() {
 			m.syncOnce()
 		}
 	}
+}
+
+func (m *ACLManager) TailingCompressed() bool {
+	return m.cfg.TailingCompressed
 }
 
 func (m *ACLManager) syncOnce() {

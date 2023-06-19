@@ -62,6 +62,8 @@ func (s *GlobSearcher) Search(path string, ExcludePath []string, SuffixFilter []
 	if !ok {
 		return []string{}, nil
 	}
+	b, _ := json.Marshal(mr)
+	level.Debug(s.logger).Log("search path", path, "searchResult", string(b))
 	return mr.(*searchResult).matches, mr.(*searchResult).err
 }
 

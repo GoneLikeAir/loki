@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime"
 	"sync"
 
 	// embed time zone data
@@ -79,6 +80,7 @@ func exit(code int) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(1)
 	// Load config, merging config file and CLI flags
 	var config Config
 	args := os.Args[1:]

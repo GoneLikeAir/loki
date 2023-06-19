@@ -98,8 +98,7 @@ func New(cfg config.Config, newConfig func() (*config.Config, error), metrics *c
 		return nil, fmt.Errorf("error register prometheus collector reloadFailTotal :%w", err)
 	}
 
-	tms, err := targets.NewTargetManagers(promtail, promtail.reg, promtail.logger, cfg.PositionsConfig, promtail.client, cfg.ScrapeConfig, &cfg.TargetConfig, cfg.ServerConfig.ACLFilepath)
-	// todo: conflict
+	//tms, err := targets.NewTargetManagers(promtail, promtail.reg, promtail.logger, cfg.PositionsConfig, promtail.client, cfg.ScrapeConfig, &cfg.TargetConfig, cfg.ServerConfig.ACLFilepath)
 	err = promtail.reloadConfig(&cfg)
 	if err != nil {
 		return nil, err
@@ -149,7 +148,7 @@ func (p *Promtail) reloadConfig(cfg *config.Config) error {
 		}
 	}
 
-	tms, err := targets.NewTargetManagers(p, p.reg, p.logger, cfg.PositionsConfig, p.client, cfg.ScrapeConfig, &cfg.TargetConfig)
+	tms, err := targets.NewTargetManagers(p, p.reg, p.logger, cfg.PositionsConfig, p.client, cfg.ScrapeConfig, &cfg.TargetConfig, cfg.ServerConfig.ACLFilepath)
 	if err != nil {
 		return err
 	}

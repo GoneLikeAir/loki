@@ -3,6 +3,7 @@ package file
 import (
 	"flag"
 	"fmt"
+	"github.com/bmatcuk/doublestar"
 	"os"
 	"path/filepath"
 	"time"
@@ -73,13 +74,15 @@ type FileTarget struct {
 	quit               chan struct{}
 	done               chan struct{}
 
-	readers map[string]Reader
+	readers             map[string]Reader
 	globSearcher        *GlobSearcher
 	getFilterOptionFunc func(labels model.LabelSet) FilterCase
 
 	//tails map[string]*tailer
 
 	targetConfig *Config
+
+	tailingCompressed bool
 
 	encoding string
 }
@@ -91,8 +94,8 @@ func NewFileTarget(
 	handler api.EntryHandler,
 	positions positions.Positions,
 	path string,
-	getFilterOptionFunc func(labels model.LabelSet) FilterCase,
 	pathExclude string,
+	getFilterOptionFunc func(labels model.LabelSet) FilterCase,
 	labels model.LabelSet,
 	discoveredLabels model.LabelSet,
 	targetConfig *Config,
@@ -100,13 +103,14 @@ func NewFileTarget(
 	targetEventHandler chan fileTargetEvent,
 	globSearcher *GlobSearcher,
 	encoding string,
+	tailingCompressed bool,
 ) (*FileTarget, error) {
 	t := &FileTarget{
 		logger:              logger,
 		metrics:             metrics,
 		path:                path,
 		getFilterOptionFunc: getFilterOptionFunc,
-		pathExclude:        pathExclude,
+		pathExclude:         pathExclude,
 		labels:              labels,
 		discoveredLabels:    discoveredLabels,
 		handler:             api.AddLabelsMiddleware(labels).Wrap(handler),
@@ -114,12 +118,13 @@ func NewFileTarget(
 		quit:                make(chan struct{}),
 		done:                make(chan struct{}),
 		//tails:               map[string]*tailer{},
-		targetConfig:        targetConfig,
-		fileEventWatcher:    fileEventWatcher,
-		targetEventHandler:  targetEventHandler,
-		globSearcher:        globSearcher,
+		targetConfig:       targetConfig,
+		fileEventWatcher:   fileEventWatcher,
+		targetEventHandler: targetEventHandler,
+		globSearcher:       globSearcher,
 		encoding:           encoding,
 		readers:            map[string]Reader{},
+		tailingCompressed:  tailingCompressed,
 	}
 
 	go t.run()
@@ -178,7 +183,7 @@ func (t *FileTarget) run() {
 
 	ticker := time.NewTicker(t.targetConfig.SyncPeriod)
 	defer ticker.Stop()
-
+	filterOption := t.getFilterOptionFunc(t.labels)
 	for {
 		select {
 		case event, ok := <-t.fileEventWatcher:
@@ -188,7 +193,12 @@ func (t *FileTarget) run() {
 			}
 			switch event.Op {
 			case fsnotify.Create:
-				t.startTailing([]string{event.Name})
+				res, err := t.globSearcher.Search(event.Name, filterOption.ExcludePath, filterOption.Suffix)
+				if err != nil {
+					level.Error(t.logger).Log("msg", "search file failed when got create event", "error", err)
+					continue
+				}
+				t.startTailing(res)
 			default:
 				// No-op we only care about Create events
 			}
@@ -334,6 +344,10 @@ func (t *FileTarget) startTailing(ps []string) {
 
 		var reader Reader
 		if isCompressed(p) {
+			if !t.tailingCompressed {
+				level.Debug(t.logger).Log("msg", "tailingCompressed disabled, do not tailing this file", "filename", p)
+				continue
+			}
 			level.Debug(t.logger).Log("msg", "reading from compressed file", "filename", p)
 			decompressor, err := newDecompressor(t.metrics, t.logger, t.handler, t.positions, p, t.encoding)
 			if err != nil {

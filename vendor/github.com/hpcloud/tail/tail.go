@@ -63,6 +63,7 @@ type Config struct {
 	Poll        bool      // Poll for file changes instead of using inotify
 	Pipe        bool      // Is a named pipe (mkfifo)
 	RateLimiter *ratelimiter.LeakyBucket
+	PollOptions watch.PollingFileWatcherOptions
 
 	// Generic IO
 	Follow      bool // Continue looking for new lines (tail -f)
@@ -118,7 +119,11 @@ func TailFile(filename string, config Config) (*Tail, error) {
 	}
 
 	if t.Poll {
-		t.watcher = watch.NewPollingFileWatcher(filename)
+		watcher, err := watch.NewPollingFileWatcher(filename, config.PollOptions)
+		if err != nil {
+			return nil, err
+		}
+		t.watcher = watcher
 	} else {
 		t.watcher = watch.NewInotifyFileWatcher(filename)
 	}
@@ -222,6 +227,7 @@ func (tail *Tail) reopen(truncated bool) error {
 	}
 
 	tail.closeFile()
+	retries := 20
 	for {
 		var err error
 		tail.fileMtx.Lock()
@@ -251,14 +257,14 @@ func (tail *Tail) reopen(truncated bool) error {
 		}
 
 		// Check to see if we are trying to reopen and tail the exact same file (and it was not truncated).
-		retries := 20
 		if !truncated && cf != nil && os.SameFile(cf, nf) {
 			retries--
 			if retries <= 0 {
 				return errors.New("gave up trying to reopen log file with a different handle")
 			}
+
 			select {
-			case <-time.After(watch.POLL_DURATION):
+			case <-time.After(watch.DefaultPollingFileWatcherOptions.MaxPollFrequency):
 				tail.closeFile()
 				continue
 			case <-tail.Tomb.Dying():
@@ -272,9 +278,14 @@ func (tail *Tail) reopen(truncated bool) error {
 
 func (tail *Tail) readLine() (string, error) {
 	tail.lk.Lock()
-	line, err := tail.reader.ReadString('\n')
+	//line, err := tail.reader.ReadString('\n')
+	line := ""
+	lineBytes, err := tail.reader.ReadSlice('\n')
+	if len(lineBytes) > 0 {
+		line = string(lineBytes)
+	}
 	tail.lk.Unlock()
-	if err != nil {
+	if err != nil && err != bufio.ErrBufferFull {
 		// Note ReadString "returns the data read before the error" in
 		// case of an error, including EOF, so we return it as is. The
 		// caller is expected to process it if err is EOF.
@@ -283,7 +294,7 @@ func (tail *Tail) readLine() (string, error) {
 
 	line = strings.TrimRight(line, "\n")
 
-	return line, err
+	return line, nil
 }
 
 func (tail *Tail) tailFileSync() {

@@ -68,7 +68,8 @@ func newTailer(metrics *Metrics, logger log.Logger, handler api.EntryHandler, po
 			Offset: pos,
 			Whence: 0,
 		},
-		Logger: util.NewLogAdapter(logger),
+		MaxLineSize: 1024 * 1024,
+		Logger:      util.NewLogAdapter(logger),
 	})
 	if err != nil {
 		return nil, err

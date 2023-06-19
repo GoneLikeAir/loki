@@ -70,7 +70,6 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.Var(&c.ExternalLabels, prefix+"client.external-labels", "list of external labels to add to each log (e.g: --client.external-labels=lb1=v1,lb2=v2) (deprecated).")
 
 	f.StringVar(&c.TenantID, prefix+"client.tenant-id", "", "Tenant ID to use when pushing logs to Loki (deprecated).")
-	f.StringVar(&c.TenantID, prefix+"client.tenant-id", "", "Tenant ID to use when pushing logs to Loki.")
 
 	f.BoolVar(&c.SendToWeMQ, prefix+"client.send-to-wemq", false, "Enable to send data to WeMQ access")
 	f.StringVar(&c.CCEndpoint, prefix+"client.cc-endpoint", "", "endpoint of wemq CC")
