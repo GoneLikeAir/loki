@@ -5,16 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/distributor/shardstreams"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/distributor/shardstreams"
+	"github.com/grafana/loki/pkg/validation"
 
 	"github.com/stretchr/testify/require"
 
-	client2 "github.com/GoneLikeAir/loki/pkg/ingester/client"
+	client2 "github.com/grafana/loki/pkg/ingester/client"
 
 	"google.golang.org/grpc"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 
 	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/ring/client"

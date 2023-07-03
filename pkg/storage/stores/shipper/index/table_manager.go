@@ -14,12 +14,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	chunk_util "github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
-	shipper_index "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	chunk_util "github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
+	shipper_index "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 type Config struct {

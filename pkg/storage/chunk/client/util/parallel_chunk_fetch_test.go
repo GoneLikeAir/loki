@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk"
 )
 
 func BenchmarkGetParallelChunks(b *testing.B) {

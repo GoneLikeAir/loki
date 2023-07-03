@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/client"
 
-	"github.com/GoneLikeAir/loki/pkg/util/flagext"
+	"github.com/grafana/loki/pkg/util/flagext"
 )
 
 const testFile = `

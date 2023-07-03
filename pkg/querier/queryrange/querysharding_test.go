@@ -10,18 +10,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 
 	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/util"
 )
 
 var (

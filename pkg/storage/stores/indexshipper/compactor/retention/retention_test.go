@@ -18,12 +18,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/chunkenc"
-	ingesterclient "github.com/GoneLikeAir/loki/pkg/ingester/client"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/chunkenc"
+	ingesterclient "github.com/grafana/loki/pkg/ingester/client"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 type mockChunkClient struct {

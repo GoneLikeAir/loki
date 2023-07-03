@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 func TestRequest(t *testing.T) {

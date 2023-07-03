@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/testutils"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/chunk/client/testutils"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
 )
 
 type fakeClient struct {

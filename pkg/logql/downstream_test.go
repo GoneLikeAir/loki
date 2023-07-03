@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 var nilShardMetrics = NewShardMapperMetrics(nil)

@@ -11,9 +11,9 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"google.golang.org/api/option"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
 
 // pullTarget represents the target specific to GCP project, with a pull subscription type.

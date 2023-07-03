@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
 
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"

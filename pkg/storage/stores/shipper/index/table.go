@@ -15,12 +15,12 @@ import (
 	"github.com/grafana/dskit/tenant"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	chunk_util "github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/indexfile"
-	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	chunk_util "github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/index/indexfile"
+	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

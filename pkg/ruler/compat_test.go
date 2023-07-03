@@ -11,11 +11,11 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/iter"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	ruler "github.com/GoneLikeAir/loki/pkg/ruler/base"
-	"github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/iter"
+	"github.com/grafana/loki/pkg/logql"
+	ruler "github.com/grafana/loki/pkg/ruler/base"
+	"github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func Test_Load(t *testing.T) {

@@ -3,7 +3,7 @@ package queryrange
 import (
 	"sort"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 /*

@@ -8,9 +8,9 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	series_index "github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	series_index "github.com/grafana/loki/pkg/storage/stores/series/index"
 )
 
 const (

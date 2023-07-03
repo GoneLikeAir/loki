@@ -8,10 +8,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/GoneLikeAir/loki/pkg/util/filter"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/grafana/loki/pkg/util/filter"
 )
 
 const testUserID = "test-user"

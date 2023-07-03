@@ -9,7 +9,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/gorilla/mux"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 // LabelResponse represents the http json response to a label query

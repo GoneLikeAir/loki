@@ -8,7 +8,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/loghttp"
 )
 
 // Blue color is excluded since we are already printing timestamp

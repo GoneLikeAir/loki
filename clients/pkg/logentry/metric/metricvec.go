@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/util"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

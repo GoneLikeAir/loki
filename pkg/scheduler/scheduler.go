@@ -28,15 +28,15 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/lokifrontend/frontend/v2/frontendv2pb"
-	"github.com/GoneLikeAir/loki/pkg/scheduler/queue"
-	"github.com/GoneLikeAir/loki/pkg/scheduler/schedulerpb"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	lokiutil "github.com/GoneLikeAir/loki/pkg/util"
-	lokigrpc "github.com/GoneLikeAir/loki/pkg/util/httpgrpc"
-	lokihttpreq "github.com/GoneLikeAir/loki/pkg/util/httpreq"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/lokifrontend/frontend/v2/frontendv2pb"
+	"github.com/grafana/loki/pkg/scheduler/queue"
+	"github.com/grafana/loki/pkg/scheduler/schedulerpb"
+	"github.com/grafana/loki/pkg/util"
+	lokiutil "github.com/grafana/loki/pkg/util"
+	lokigrpc "github.com/grafana/loki/pkg/util/httpgrpc"
+	lokihttpreq "github.com/grafana/loki/pkg/util/httpreq"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 var errSchedulerIsNotRunning = errors.New("scheduler is not running")

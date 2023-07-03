@@ -16,17 +16,17 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

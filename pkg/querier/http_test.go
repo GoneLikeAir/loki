@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func TestTailHandler(t *testing.T) {

@@ -3,9 +3,9 @@ package distributor
 import (
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 
-	"github.com/GoneLikeAir/loki/pkg/distributor/shardstreams"
+	"github.com/grafana/loki/pkg/distributor/shardstreams"
 )
 
 // Limits is an interface for distributor limits/related configs

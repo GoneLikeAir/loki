@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
-	loki_util "github.com/GoneLikeAir/loki/pkg/util"
+	loki_util "github.com/grafana/loki/pkg/util"
 )
 
 const (

@@ -13,9 +13,9 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 func TestNewGCPLogTarget(t *testing.T) {

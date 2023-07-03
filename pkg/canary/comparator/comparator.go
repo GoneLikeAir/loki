@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/instrument"
 
-	"github.com/GoneLikeAir/loki/pkg/canary/reader"
+	"github.com/grafana/loki/pkg/canary/reader"
 )
 
 const (

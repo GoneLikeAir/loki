@@ -11,10 +11,10 @@ import (
 	"github.com/joncrlsn/dque"
 	"github.com/prometheus/common/model"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/client"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 type dqueConfig struct {

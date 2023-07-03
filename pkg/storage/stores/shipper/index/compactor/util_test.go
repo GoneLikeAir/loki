@@ -16,17 +16,17 @@ import (
 	"github.com/weaveworks/common/user"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	chunk_util "github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper"
-	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	chunk_util "github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
+	"github.com/grafana/loki/pkg/storage/stores/shipper"
+	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func dayFromTime(t model.Time) config.DayTime {

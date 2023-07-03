@@ -16,11 +16,11 @@ import (
 	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/transform"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/positions"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/util"
 )
 
 type tailer struct {

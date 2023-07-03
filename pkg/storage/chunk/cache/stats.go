@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
 )
 
 type statsCollector struct {

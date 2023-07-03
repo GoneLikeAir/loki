@@ -13,9 +13,9 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	loki_net "github.com/GoneLikeAir/loki/pkg/util/net"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/config"
+	loki_net "github.com/grafana/loki/pkg/util/net"
 )
 
 const indexTablePrefix = "table_"

@@ -6,8 +6,8 @@ import (
 
 	"github.com/grafana/dskit/concurrency"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	util_math "github.com/GoneLikeAir/loki/pkg/util/math"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	util_math "github.com/grafana/loki/pkg/util/math"
 )
 
 const (

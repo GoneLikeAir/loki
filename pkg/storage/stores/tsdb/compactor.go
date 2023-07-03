@@ -14,13 +14,13 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	index_shipper "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	index_shipper "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
 )
 
 const readDBsConcurrency = 50

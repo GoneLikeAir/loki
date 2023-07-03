@@ -12,9 +12,9 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/iter"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql/log"
+	"github.com/grafana/loki/pkg/iter"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql/log"
 )
 
 func iterEq(t *testing.T, exp []entry, got iter.EntryIterator) {

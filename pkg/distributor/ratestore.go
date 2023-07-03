@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/util"
 
 	"github.com/weaveworks/common/instrument"
 
@@ -15,13 +15,13 @@ import (
 
 	"github.com/go-kit/log/level"
 
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	util_log "github.com/grafana/loki/pkg/util/log"
 
 	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/ring/client"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 const keySeparator = ":"

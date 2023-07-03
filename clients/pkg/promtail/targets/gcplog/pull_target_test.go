@@ -17,10 +17,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
 
 func TestPullTarget_Run(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
 )
 
 type MultiIndex struct {

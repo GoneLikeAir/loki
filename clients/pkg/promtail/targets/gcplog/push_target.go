@@ -14,12 +14,12 @@ import (
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/serverutils"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 type pushTarget struct {

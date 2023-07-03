@@ -6,8 +6,8 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 // DecodePushRequest directly decodes json to a logproto.PushRequest

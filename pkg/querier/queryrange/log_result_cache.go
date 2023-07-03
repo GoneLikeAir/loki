@@ -17,12 +17,12 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/grafana/loki/pkg/storage/chunk/cache"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 // LogResultCacheMetrics is the metrics wrapper used in log result cache.

@@ -8,7 +8,7 @@ import (
 
 	json "github.com/json-iterator/go"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 const (

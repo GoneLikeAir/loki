@@ -29,11 +29,11 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/util/spanlogger"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/chunk/cache"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/util/spanlogger"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 var (

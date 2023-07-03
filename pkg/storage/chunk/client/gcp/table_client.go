@@ -11,8 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
 )
 
 type tableClient struct {

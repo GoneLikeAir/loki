@@ -10,11 +10,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 const (

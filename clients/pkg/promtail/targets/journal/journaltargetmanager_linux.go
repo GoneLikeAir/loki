@@ -7,11 +7,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/logentry/stages"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/loki/clients/pkg/logentry/stages"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/positions"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
 
 // JournalTargetManager manages a series of JournalTargets.

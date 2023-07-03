@@ -18,10 +18,10 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 
-	"github.com/GoneLikeAir/loki/pkg/lokifrontend/frontend/v2/frontendv2pb"
-	"github.com/GoneLikeAir/loki/pkg/querier/stats"
-	"github.com/GoneLikeAir/loki/pkg/scheduler/schedulerpb"
-	"github.com/GoneLikeAir/loki/pkg/util/test"
+	"github.com/grafana/loki/pkg/lokifrontend/frontend/v2/frontendv2pb"
+	"github.com/grafana/loki/pkg/querier/stats"
+	"github.com/grafana/loki/pkg/scheduler/schedulerpb"
+	"github.com/grafana/loki/pkg/util/test"
 )
 
 const testFrontendWorkerConcurrency = 5

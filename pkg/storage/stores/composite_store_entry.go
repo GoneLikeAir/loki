@@ -9,14 +9,14 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
-	"github.com/GoneLikeAir/loki/pkg/storage/errors"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/util/spanlogger"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
+	"github.com/grafana/loki/pkg/storage/errors"
+	"github.com/grafana/loki/pkg/storage/stores/index"
+	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/util/spanlogger"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 var _ Store = &compositeStore{}

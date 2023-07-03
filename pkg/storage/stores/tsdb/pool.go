@@ -3,7 +3,7 @@ package tsdb
 import (
 	"sync"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
 )
 
 var (

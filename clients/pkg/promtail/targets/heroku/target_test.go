@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 
-	lokiClient "github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
+	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 const localhost = "127.0.0.1"

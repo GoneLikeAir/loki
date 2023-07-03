@@ -19,8 +19,8 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/instrument"
 
-	"github.com/GoneLikeAir/loki/pkg/configs/userconfig"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/configs/userconfig"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 var (

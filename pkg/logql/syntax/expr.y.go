@@ -8,7 +8,7 @@ import __yyfmt__ "fmt"
 //line pkg/logql/syntax/expr.y:2
 
 import (
-	"github.com/GoneLikeAir/loki/pkg/logql/log"
+	"github.com/grafana/loki/pkg/logql/log"
 	"github.com/prometheus/prometheus/model/labels"
 	"time"
 )

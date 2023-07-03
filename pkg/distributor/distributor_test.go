@@ -28,17 +28,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/GoneLikeAir/loki/pkg/ingester"
-	"github.com/GoneLikeAir/loki/pkg/ingester/client"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/runtime"
-	fe "github.com/GoneLikeAir/loki/pkg/util/flagext"
-	loki_flagext "github.com/GoneLikeAir/loki/pkg/util/flagext"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	loki_net "github.com/GoneLikeAir/loki/pkg/util/net"
-	"github.com/GoneLikeAir/loki/pkg/util/test"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/ingester"
+	"github.com/grafana/loki/pkg/ingester/client"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/runtime"
+	fe "github.com/grafana/loki/pkg/util/flagext"
+	loki_flagext "github.com/grafana/loki/pkg/util/flagext"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	loki_net "github.com/grafana/loki/pkg/util/net"
+	"github.com/grafana/loki/pkg/util/test"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 var (

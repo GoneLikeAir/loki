@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/alertmanager/pkg/modtimevfs"
 	"github.com/shurcooL/vfsgen"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/server/ui"
+	"github.com/grafana/loki/clients/pkg/promtail/server/ui"
 )
 
 func main() {

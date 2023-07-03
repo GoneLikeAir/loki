@@ -15,7 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/instrument"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
 )
 
 // NoSuchKeyErr The resource you requested does not exist.

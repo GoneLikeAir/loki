@@ -11,12 +11,12 @@ import (
 	"github.com/prometheus/prometheus/promql/parser"
 	"github.com/weaveworks/common/httpgrpc"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/util/marshal"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/logql"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/util/marshal"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 type splitByRange struct {

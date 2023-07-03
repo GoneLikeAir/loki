@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/loghttp"
+	"github.com/grafana/loki/pkg/loghttp"
 )
 
 // RawOutput prints logs in their original form, without any metadata

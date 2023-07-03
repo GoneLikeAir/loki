@@ -8,10 +8,10 @@ import (
 	"github.com/grafana/dskit/backoff"
 	"golang.org/x/time/rate"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/testutils"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/testutils"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
 )
 
 type fixture struct {

@@ -13,13 +13,13 @@ import (
 	"github.com/grafana/dskit/concurrency"
 	"github.com/prometheus/common/model"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
-	"github.com/GoneLikeAir/loki/pkg/util/spanlogger"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/grafana/loki/pkg/util/spanlogger"
 )
 
 func shardResolverForConf(

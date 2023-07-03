@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,10 +20,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 
-	lokiClient "github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/gcplog"
+	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/gcplog"
 )
 
 const localhost = "127.0.0.1"

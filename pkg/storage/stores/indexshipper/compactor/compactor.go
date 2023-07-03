@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/flagext"
@@ -23,16 +23,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	chunk_util "github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletion"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	shipper_storage "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/GoneLikeAir/loki/pkg/usagestats"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	chunk_util "github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletion"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	shipper_storage "github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/grafana/loki/pkg/usagestats"
+	"github.com/grafana/loki/pkg/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 // Here is how the generic compactor works:

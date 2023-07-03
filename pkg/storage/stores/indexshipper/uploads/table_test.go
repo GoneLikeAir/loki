@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
 )
 
 const (

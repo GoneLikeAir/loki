@@ -7,11 +7,11 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
+	"github.com/grafana/loki/pkg/storage/stores/index"
+	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/grafana/loki/pkg/util"
 )
 
 // Store for chunks.

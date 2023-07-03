@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
 )
 
 type mockTableQuerier struct {

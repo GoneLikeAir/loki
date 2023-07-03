@@ -17,7 +17,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	errs "github.com/weaveworks/common/errors"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logproto"
 )
 
 const (

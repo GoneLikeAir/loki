@@ -17,9 +17,9 @@ import (
 	"google.golang.org/api/option"
 	google_http "google.golang.org/api/transport/http"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/hedging"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/hedging"
+	"github.com/grafana/loki/pkg/storage/chunk/client/util"
 )
 
 type ClientFactory func(ctx context.Context, opts ...option.ClientOption) (*storage.Client, error)

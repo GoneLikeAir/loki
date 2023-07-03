@@ -30,10 +30,10 @@ import (
 	awscommon "github.com/weaveworks/common/aws"
 	"github.com/weaveworks/common/instrument"
 
-	bucket_s3 "github.com/GoneLikeAir/loki/pkg/storage/bucket/s3"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/hedging"
-	"github.com/GoneLikeAir/loki/pkg/util"
+	bucket_s3 "github.com/grafana/loki/pkg/storage/bucket/s3"
+	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/grafana/loki/pkg/storage/chunk/client/hedging"
+	"github.com/grafana/loki/pkg/util"
 )
 
 const (

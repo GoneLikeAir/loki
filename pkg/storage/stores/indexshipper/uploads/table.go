@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-kit/log"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

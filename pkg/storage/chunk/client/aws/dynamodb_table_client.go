@@ -15,9 +15,9 @@ import (
 	"github.com/weaveworks/common/instrument"
 	"golang.org/x/time/rate"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	"github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/util/log"
 )
 
 // Pluggable auto-scaler implementation

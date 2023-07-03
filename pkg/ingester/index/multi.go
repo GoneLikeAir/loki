@@ -7,9 +7,9 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/querier/astmapper"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/querier/astmapper"
+	"github.com/grafana/loki/pkg/storage/config"
 )
 
 type periodIndex struct {

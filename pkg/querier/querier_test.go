@@ -18,12 +18,12 @@ import (
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/ingester/client"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	"github.com/GoneLikeAir/loki/pkg/storage"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletion"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/ingester/client"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql"
+	"github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletion"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 const (

@@ -18,14 +18,14 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/loki"
-	"github.com/GoneLikeAir/loki/pkg/storage"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/util/cfg"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/loki"
+	"github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/util/cfg"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 type syncRange struct {

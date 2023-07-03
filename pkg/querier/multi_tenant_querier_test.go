@@ -17,10 +17,10 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/iter"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql"
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/iter"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql"
+	"github.com/grafana/loki/pkg/logql/syntax"
 )
 
 func TestMultiTenantQuerier_SelectLogs(t *testing.T) {

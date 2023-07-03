@@ -17,8 +17,8 @@ import (
 	"github.com/grafana/dskit/multierror"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/GoneLikeAir/loki/pkg/loki"
-	"github.com/GoneLikeAir/loki/pkg/util/cfg"
+	"github.com/grafana/loki/pkg/loki"
+	"github.com/grafana/loki/pkg/util/cfg"
 )
 
 var (

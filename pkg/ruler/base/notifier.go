@@ -18,7 +18,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/notifier"
 
-	ruler_config "github.com/GoneLikeAir/loki/pkg/ruler/config"
+	ruler_config "github.com/grafana/loki/pkg/ruler/config"
 )
 
 // rulerNotifier bundles a notifier.Manager together with an associated

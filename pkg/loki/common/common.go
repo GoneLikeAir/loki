@@ -6,15 +6,15 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/dskit/netutil"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/aws"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/azure"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/baidubce"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/gcp"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/hedging"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/openstack"
-	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/grafana/loki/pkg/storage/chunk/client/aws"
+	"github.com/grafana/loki/pkg/storage/chunk/client/azure"
+	"github.com/grafana/loki/pkg/storage/chunk/client/baidubce"
+	"github.com/grafana/loki/pkg/storage/chunk/client/gcp"
+	"github.com/grafana/loki/pkg/storage/chunk/client/hedging"
+	"github.com/grafana/loki/pkg/storage/chunk/client/openstack"
+	"github.com/grafana/loki/pkg/util"
 
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 // Config holds common config that can be shared between multiple other config sections.

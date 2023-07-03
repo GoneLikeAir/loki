@@ -16,11 +16,11 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/chunkenc"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	loki_util "github.com/GoneLikeAir/loki/pkg/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/chunkenc"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/util"
+	loki_util "github.com/grafana/loki/pkg/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

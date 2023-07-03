@@ -10,7 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/logqlmodel"
 )
 
 var (

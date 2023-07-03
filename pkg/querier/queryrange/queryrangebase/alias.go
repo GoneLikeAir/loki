@@ -1,6 +1,6 @@
 package queryrangebase
 
-import "github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
+import "github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 
 // Helpful aliases for refactoring circular imports
 

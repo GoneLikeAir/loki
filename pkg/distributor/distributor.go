@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/ingester"
+	"github.com/grafana/loki/pkg/ingester"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -30,17 +30,17 @@ import (
 	"github.com/weaveworks/common/user"
 	"go.uber.org/atomic"
 
-	"github.com/GoneLikeAir/loki/pkg/distributor/clientpool"
-	"github.com/GoneLikeAir/loki/pkg/distributor/shardstreams"
-	"github.com/GoneLikeAir/loki/pkg/ingester/client"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/runtime"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/GoneLikeAir/loki/pkg/usagestats"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/distributor/clientpool"
+	"github.com/grafana/loki/pkg/distributor/shardstreams"
+	"github.com/grafana/loki/pkg/ingester/client"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/runtime"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/grafana/loki/pkg/usagestats"
+	"github.com/grafana/loki/pkg/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 const (

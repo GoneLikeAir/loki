@@ -13,12 +13,12 @@ import (
 	"github.com/weaveworks/common/user"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	shipper_index "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/indexfile"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/testutil"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/chunk/client/util"
+	shipper_index "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/index/indexfile"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/testutil"
 )
 
 const (

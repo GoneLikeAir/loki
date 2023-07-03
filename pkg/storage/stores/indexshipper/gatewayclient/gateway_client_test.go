@@ -13,11 +13,11 @@ import (
 	"github.com/weaveworks/common/user"
 	"google.golang.org/grpc"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/indexgateway"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/indexgateway"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

@@ -9,9 +9,9 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/querier/astmapper"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/querier/astmapper"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
 )
 
 func Test_BitPrefixGetShards(t *testing.T) {

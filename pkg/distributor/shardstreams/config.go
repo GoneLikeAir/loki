@@ -3,7 +3,7 @@ package shardstreams
 import (
 	"flag"
 
-	"github.com/GoneLikeAir/loki/pkg/util/flagext"
+	"github.com/grafana/loki/pkg/util/flagext"
 )
 
 type Config struct {

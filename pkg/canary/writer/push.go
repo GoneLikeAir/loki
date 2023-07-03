@@ -20,8 +20,8 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/util/build"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/util/build"
 )
 
 const (

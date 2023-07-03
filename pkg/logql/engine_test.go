@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel/metadata"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
+	"github.com/grafana/loki/pkg/logqlmodel/metadata"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 
 	"github.com/go-kit/log"
 	json "github.com/json-iterator/go"
@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/iter"
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	"github.com/GoneLikeAir/loki/pkg/util/httpreq"
+	"github.com/grafana/loki/pkg/iter"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/grafana/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	"github.com/grafana/loki/pkg/util"
+	"github.com/grafana/loki/pkg/util/httpreq"
 )
 
 var (

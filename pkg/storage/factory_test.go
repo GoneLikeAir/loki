@@ -10,9 +10,9 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/cassandra"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/storage/chunk/client/cassandra"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func TestFactoryStop(t *testing.T) {

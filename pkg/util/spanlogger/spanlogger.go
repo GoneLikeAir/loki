@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 type loggerCtxMarker struct{}

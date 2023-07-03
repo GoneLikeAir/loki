@@ -1,4 +1,4 @@
-module github.com/GoneLikeAir/loki
+module github.com/grafana/loki
 
 go 1.17
 

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func TestLimiter_AssertMaxStreamsPerUser(t *testing.T) {

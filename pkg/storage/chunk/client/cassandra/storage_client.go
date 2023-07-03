@@ -18,11 +18,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/grafana/loki/pkg/storage/chunk/client/util"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 // Config for a StorageClient

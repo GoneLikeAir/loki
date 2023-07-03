@@ -8,18 +8,18 @@ import (
 	"github.com/go-kit/log/level"
 	dskit_flagext "github.com/grafana/dskit/flagext"
 
-	"github.com/GoneLikeAir/loki/pkg/tracing"
+	"github.com/grafana/loki/pkg/tracing"
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/limit"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/server"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
+	"github.com/grafana/loki/clients/pkg/promtail/positions"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/server"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 
-	"github.com/GoneLikeAir/loki/pkg/util/flagext"
+	"github.com/grafana/loki/pkg/util/flagext"
 )
 
 // Options contains cross-cutting promtail configurations

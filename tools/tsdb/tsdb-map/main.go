@@ -11,12 +11,12 @@ import (
 	"go.etcd.io/bbolt"
 	"gopkg.in/yaml.v2"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/compactor"
-	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/index/compactor"
+	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb"
+	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
 )
 
 var (

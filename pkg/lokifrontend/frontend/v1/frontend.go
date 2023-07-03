@@ -18,12 +18,12 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/GoneLikeAir/loki/pkg/lokifrontend/frontend/v1/frontendv1pb"
-	"github.com/GoneLikeAir/loki/pkg/querier/stats"
-	"github.com/GoneLikeAir/loki/pkg/scheduler/queue"
-	"github.com/GoneLikeAir/loki/pkg/util"
-	lokigrpc "github.com/GoneLikeAir/loki/pkg/util/httpgrpc"
-	"github.com/GoneLikeAir/loki/pkg/util/validation"
+	"github.com/grafana/loki/pkg/lokifrontend/frontend/v1/frontendv1pb"
+	"github.com/grafana/loki/pkg/querier/stats"
+	"github.com/grafana/loki/pkg/scheduler/queue"
+	"github.com/grafana/loki/pkg/util"
+	lokigrpc "github.com/grafana/loki/pkg/util/httpgrpc"
+	"github.com/grafana/loki/pkg/util/validation"
 )
 
 var errTooManyRequest = httpgrpc.Errorf(http.StatusTooManyRequests, "too many outstanding requests")

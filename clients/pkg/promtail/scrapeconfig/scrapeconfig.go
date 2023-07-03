@@ -2,7 +2,7 @@ package scrapeconfig
 
 import (
 	"fmt"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig/webhook"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig/webhook"
 	"reflect"
 	"time"
 
@@ -28,8 +28,8 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/weaveworks/common/server"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/logentry/stages"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/discovery/consulagent"
+	"github.com/grafana/loki/clients/pkg/logentry/stages"
+	"github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 )
 
 // Config describes a job to scrape.

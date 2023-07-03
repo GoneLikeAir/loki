@@ -3,7 +3,7 @@ package distributor
 import (
 	"github.com/grafana/dskit/limiter"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 // ReadLifecycler represents the read interface to the lifecycler.

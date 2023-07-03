@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.etcd.io/bbolt"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
-	index_shipper "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/indexfile"
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/testutil"
+	"github.com/grafana/loki/pkg/storage/chunk/client/local"
+	"github.com/grafana/loki/pkg/storage/chunk/client/util"
+	index_shipper "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/index/indexfile"
+	"github.com/grafana/loki/pkg/storage/stores/shipper/testutil"
 )
 
 func buildTestTableManager(t *testing.T, testDir string) (*TableManager, stopFunc) {

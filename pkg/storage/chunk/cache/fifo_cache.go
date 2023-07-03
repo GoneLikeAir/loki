@@ -17,8 +17,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const (

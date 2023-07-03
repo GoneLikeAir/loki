@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/util/strutil"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/logqlmodel"
 )
 
 var tokens = map[string]int{

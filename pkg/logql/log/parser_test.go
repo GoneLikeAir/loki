@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/logqlmodel"
 )
 
 func Test_jsonParser_Parse(t *testing.T) {

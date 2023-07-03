@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/storage"
-	"github.com/GoneLikeAir/loki/pkg/util/test"
+	"github.com/grafana/loki/pkg/storage"
+	"github.com/grafana/loki/pkg/util/test"
 )
 
 // TestRulerShutdown tests shutting down ruler unregisters correctly

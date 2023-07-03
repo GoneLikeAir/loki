@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoneLikeAir/loki/pkg/validation"
+	"github.com/grafana/loki/pkg/validation"
 )
 
 func TestDistributorRingHandler(t *testing.T) {

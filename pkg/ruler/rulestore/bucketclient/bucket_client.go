@@ -15,9 +15,9 @@ import (
 	"github.com/thanos-io/objstore"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/GoneLikeAir/loki/pkg/ruler/rulespb"
-	"github.com/GoneLikeAir/loki/pkg/ruler/rulestore"
-	"github.com/GoneLikeAir/loki/pkg/storage/bucket"
+	"github.com/grafana/loki/pkg/ruler/rulespb"
+	"github.com/grafana/loki/pkg/ruler/rulestore"
+	"github.com/grafana/loki/pkg/storage/bucket"
 )
 
 const (

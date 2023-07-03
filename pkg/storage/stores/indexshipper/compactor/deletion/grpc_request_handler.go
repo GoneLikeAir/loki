@@ -8,8 +8,8 @@ import (
 	"github.com/grafana/dskit/tenant"
 	"github.com/pkg/errors"
 
-	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/client/grpc"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/client/grpc"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 type GRPCRequestHandler struct {

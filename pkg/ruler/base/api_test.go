@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/ruler/rulespb"
+	"github.com/grafana/loki/pkg/ruler/rulespb"
 )
 
 func TestRuler_rules(t *testing.T) {

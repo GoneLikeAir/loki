@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/logql/syntax"
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 var splittableVectorOp = map[string]struct{}{

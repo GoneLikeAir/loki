@@ -24,9 +24,9 @@ import (
 	serverww "github.com/weaveworks/common/server"
 	_ "net/http/pprof"
 
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/server/ui"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets"
-	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/loki/clients/pkg/promtail/server/ui"
+	"github.com/grafana/loki/clients/pkg/promtail/targets"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
 
 var (

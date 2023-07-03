@@ -22,13 +22,13 @@ import (
 	"github.com/weaveworks/common/middleware"
 	"github.com/weaveworks/common/user"
 
-	"github.com/GoneLikeAir/loki/pkg/logproto"
-	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
-	"github.com/GoneLikeAir/loki/pkg/storage/config"
-	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
-	"github.com/GoneLikeAir/loki/pkg/util/marshal"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/logqlmodel"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/grafana/loki/pkg/storage/chunk/cache"
+	"github.com/grafana/loki/pkg/storage/config"
+	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/grafana/loki/pkg/util/marshal"
 )
 
 var (

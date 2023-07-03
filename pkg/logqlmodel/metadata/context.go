@@ -10,7 +10,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
+	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 )
 
 type (
