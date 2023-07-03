@@ -2,8 +2,12 @@ package log
 
 import (
 	"fmt"
+	"go.uber.org/atomic"
 	"io"
 	"math"
+	"net"
+	"path/filepath"
+	pkgsync "sync"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -11,10 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
-	"go.uber.org/atomic"
-	"net"
 	"os"
-	pkgsync "sync"
 	"time"
 )
 
@@ -29,8 +30,8 @@ var (
 
 // InitLogger initialises the global gokit logger (util_log.Logger) and overrides the
 // default logger for the server.
-func InitLogger(cfg *server.Config, reg prometheus.Registerer, buffered bool, sync bool) {
-	l := newPrometheusLogger(cfg.LogLevel, cfg.LogFormat, reg, buffered, sync)
+func InitLogger(cfg *server.Config, reg prometheus.Registerer, buffered bool, sync bool, stdLogging bool, logDir ...string) {
+	l := newPrometheusLogger(cfg.LogLevel, cfg.LogFormat, reg, buffered, sync, stdLogging, logDir...)
 
 	// when use util_log.Logger, skip 3 stack frames.
 	Logger = log.With(l, "caller", log.Caller(3))
@@ -67,30 +68,8 @@ type prometheusLogger struct {
 
 // newPrometheusLogger creates a new instance of PrometheusLogger which exposes
 // Prometheus counters for various log levels.
-func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.Registerer, buffered bool, sync bool) log.Logger {
+func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.Registerer, buffered bool, sync bool, stdLogging bool, logDir ...string) log.Logger {
 	//host, _ := os.Hostname()
-	addrs, _ := net.InterfaceAddrs()
-	ip := "unknownIP"
-	for _, address := range addrs {
-		// 检查ip地址判断是否回环地址
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				ip = ipnet.IP.String()
-			}
-		}
-	}
-	hook := &RollingLogger{
-		Filename:   fmt.Sprintf("/data/logs/wcs-logagent/wcs-logagent-%s.log", ip),
-		MaxAge:     30,
-		MaxBackups: 180,
-		MaxSize:    1000,
-		Compress:   true,
-		cursor:     atomic.NewInt32(0),
-		mu:         pkgsync.Mutex{},
-		millCh:     make(chan bool),
-		startMill:  pkgsync.Once{},
-		lastTime:   time.Now(),
-	}
 
 	// buffered logger settings
 	var (
@@ -117,27 +96,55 @@ func newPrometheusLogger(l logging.Level, format logging.Format, reg prometheus.
 	})
 
 	var writer io.Writer
-	if buffered {
-		// retain a reference to this logger because it doesn't conform to the standard Logger interface,
-		// and we can't unwrap it to get the underlying logger when we flush on shutdown
-		bufferedLogger = log.NewLineBufferedLogger(os.Stderr, logEntries,
-			log.WithFlushPeriod(flushTimeout),
-			log.WithPrellocatedBuffer(logBufferSize),
-			log.WithFlushCallback(func(entries uint32) {
-				logFlushes.Observe(float64(entries))
-			}),
-		)
-
-		writer = bufferedLogger
+	if !stdLogging {
+		addrs, _ := net.InterfaceAddrs()
+		ip := "unknownIP"
+		for _, address := range addrs {
+			// 检查ip地址判断是否回环地址
+			if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					ip = ipnet.IP.String()
+				}
+			}
+		}
+		fp := fmt.Sprintf("/var/log/wcs-logagent-%s.log", ip)
+		if len(logDir) > 0 {
+			fp = filepath.Join(logDir[0], fmt.Sprintf("wcs-logagent-%s.log", ip))
+		}
+		hook := &RollingLogger{
+			Filename:   fp,
+			MaxAge:     30,
+			MaxBackups: 180,
+			MaxSize:    1000,
+			Compress:   true,
+			cursor:     atomic.NewInt32(0),
+			mu:         pkgsync.Mutex{},
+			millCh:     make(chan bool),
+			startMill:  pkgsync.Once{},
+			lastTime:   time.Now(),
+		}
+		writer = log.NewSyncWriter(hook)
 	} else {
-		writer = os.Stderr
-	}
+		if buffered {
+			// retain a reference to this logger because it doesn't conform to the standard Logger interface,
+			// and we can't unwrap it to get the underlying logger when we flush on shutdown
+			bufferedLogger = log.NewLineBufferedLogger(os.Stderr, logEntries,
+				log.WithFlushPeriod(flushTimeout),
+				log.WithPrellocatedBuffer(logBufferSize),
+				log.WithFlushCallback(func(entries uint32) {
+					logFlushes.Observe(float64(entries))
+				}),
+			)
 
-	if sync {
-		writer = log.NewSyncWriter(writer)
-	}
+			writer = bufferedLogger
+		} else {
+			writer = os.Stderr
+		}
 
-	writer = log.NewSyncWriter(hook)
+		if sync {
+			writer = log.NewSyncWriter(writer)
+		}
+	}
 
 	logger := log.NewLogfmtLogger(writer)
 	if format.String() == "json" {

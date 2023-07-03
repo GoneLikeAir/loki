@@ -1,4 +1,4 @@
-FROM golang:1.20.1-bullseye as build
+FROM uat.sf.dockerhub.stgwebank/k8s/golang:1.20.1-bullseye as build
 
 # FROM golang:1.17.8-bullseye as build
 # FROM golang:1.17.8-bullseye-with-deps as build

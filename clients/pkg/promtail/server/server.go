@@ -3,6 +3,8 @@ package server
 import (
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -45,6 +47,7 @@ type PromtailServer struct {
 	tms               *targets.TargetManagers
 	externalURL       *url.URL
 	reloadCh          chan chan error
+	injectCfgFunc     func(cfg string) error
 	healthCheckTarget bool
 	promtailCfg       string
 }
@@ -76,7 +79,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 }
 
 // New makes a new Server
-func New(cfg Config, log log.Logger, tms *targets.TargetManagers, promtailCfg string) (Server, error) {
+func New(cfg Config, log log.Logger, tms *targets.TargetManagers, promtailCfg string, injectCfgFunc func(cfg string) error) (Server, error) {
 	if cfg.Disable {
 		return newNoopServer(log), nil
 	}
@@ -104,6 +107,7 @@ func New(cfg Config, log log.Logger, tms *targets.TargetManagers, promtailCfg st
 		externalURL:       externalURL,
 		healthCheckTarget: healthCheckTargetFlag,
 		promtailCfg:       promtailCfg,
+		injectCfgFunc:     injectCfgFunc,
 	}
 
 	serv.HTTP.Path("/").Handler(http.RedirectHandler(path.Join(serv.externalURL.Path, "/targets"), 303))
@@ -112,6 +116,10 @@ func New(cfg Config, log log.Logger, tms *targets.TargetManagers, promtailCfg st
 	serv.HTTP.Path("/service-discovery").Handler(http.HandlerFunc(serv.serviceDiscovery))
 	serv.HTTP.Path("/targets").Handler(http.HandlerFunc(serv.targets))
 	serv.HTTP.Path("/config").Handler(http.HandlerFunc(serv.config))
+	serv.HTTP.Path("/raw-config").Handler(http.HandlerFunc(serv.rawConfig))
+	serv.HTTP.Path("/config-inject").Handler(http.HandlerFunc(serv.injectConfig)).Methods("POST")
+	serv.HTTP.Path("/version").Handler(http.HandlerFunc(serv.version))
+
 	if cfg.Reload {
 		serv.HTTP.Path("/reload").Handler(http.HandlerFunc(serv.reload))
 	}
@@ -199,6 +207,37 @@ func (s *PromtailServer) config(rw http.ResponseWriter, req *http.Request) {
 	})
 }
 
+func (s *PromtailServer) rawConfig(rw http.ResponseWriter, req *http.Request) {
+	_, _ = io.WriteString(rw, s.promtailCfg)
+}
+
+func (s *PromtailServer) version(rw http.ResponseWriter, req *http.Request) {
+	_, _ = io.WriteString(rw, version.Print("promtail"))
+}
+
+func (s *PromtailServer) injectConfig(rw http.ResponseWriter, req *http.Request) {
+	if s.injectCfgFunc == nil {
+		http.Error(rw, "injectConfig disabled", http.StatusForbidden)
+		return
+	}
+	c, err := ioutil.ReadAll(req.Body)
+	if err != nil || len(c) == 0 {
+		http.Error(rw, err.Error(), http.StatusPaymentRequired)
+		return
+	}
+	err = s.injectCfgFunc(string(c))
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := s.reloadInner(); err != nil {
+		http.Error(rw, fmt.Sprintf("failed to reload config: %s", err), http.StatusInternalServerError)
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+
+}
+
 // targets serves the targets page.
 func (s *PromtailServer) targets(rw http.ResponseWriter, req *http.Request) {
 	s.mtx.Lock()
@@ -235,12 +274,16 @@ func (s *PromtailServer) targets(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (s *PromtailServer) reload(rw http.ResponseWriter, req *http.Request) {
-	rc := make(chan error)
-	s.reloadCh <- rc
-	if err := <-rc; err != nil {
+	if err := s.reloadInner(); err != nil {
 		http.Error(rw, fmt.Sprintf("failed to reload config: %s", err), http.StatusInternalServerError)
 	}
 
+}
+
+func (s *PromtailServer) reloadInner() error {
+	rc := make(chan error)
+	s.reloadCh <- rc
+	return <-rc
 }
 
 // Reload returns the receive-only channel that signals configuration reload requests.

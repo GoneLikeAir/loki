@@ -114,6 +114,7 @@ require (
 
 require (
 	github.com/heroku/x v0.0.50
+	github.com/mrunalp/fileutils v0.5.0
 	github.com/prometheus/alertmanager v0.24.0
 	github.com/prometheus/common/sigv4 v0.1.0
 	github.com/thanos-io/objstore v0.0.0-20220715165016-ce338803bc1e

@@ -72,7 +72,7 @@ type Promtail struct {
 }
 
 // New makes a new Promtail.
-func New(cfg config.Config, newConfig func() (*config.Config, error), metrics *client.Metrics, dryRun bool, opts ...Option) (*Promtail, error) {
+func New(cfg config.Config, newConfig func() (*config.Config, error), injectConfig func(content string) error, metrics *client.Metrics, dryRun bool, opts ...Option) (*Promtail, error) {
 	// Initialize promtail with some defaults and allow the options to override
 	// them.
 
@@ -103,7 +103,7 @@ func New(cfg config.Config, newConfig func() (*config.Config, error), metrics *c
 	if err != nil {
 		return nil, err
 	}
-	server, err := server.New(cfg.ServerConfig, promtail.logger, promtail.targetManagers, cfg.String())
+	server, err := server.New(cfg.ServerConfig, promtail.logger, promtail.targetManagers, cfg.String(), injectConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating loki server: %w", err)
 	}
@@ -133,6 +133,9 @@ func (p *Promtail) reloadConfig(cfg *config.Config) error {
 	cfg.Setup(p.logger)
 	if cfg.LimitsConfig.ReadlineRateEnabled {
 		stages.SetReadLineRateLimiter(cfg.LimitsConfig.ReadlineRate, cfg.LimitsConfig.ReadlineBurst, cfg.LimitsConfig.ReadlineRateDrop)
+	}
+	if cfg.LimitsConfig.ReadSizeLimitEnabled {
+		stages.SetReadSizeRateLimiter(cfg.LimitsConfig.ReadSizeLimit*1024*1024, cfg.LimitsConfig.ReadSizeBurst*1024*1024, cfg.LimitsConfig.ReadlineRateDrop)
 	}
 	var err error
 	if p.dryRun {

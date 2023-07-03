@@ -2,6 +2,7 @@ package scrapeconfig
 
 import (
 	"fmt"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig/webhook"
 	"reflect"
 	"time"
 
@@ -84,6 +85,8 @@ type ServiceDiscoveryConfig struct {
 	AzureSDConfigs []*azure.SDConfig `mapstructure:"azure_sd_configs,omitempty" yaml:"azure_sd_configs,omitempty"`
 	// List of Triton service discovery configurations.
 	TritonSDConfigs []*triton.SDConfig `mapstructure:"triton_sd_configs,omitempty" yaml:"triton_sd_configs,omitempty"`
+	// List of webhook service discovery configurations.
+	WebhookSDConfigs []*webhook.WebhookSDConfig `mapstructure:"webhook_sd_configs,omitempty" yaml:"webhook_sd_configs,omitempty"`
 }
 
 func (cfg ServiceDiscoveryConfig) Configs() (res discovery.Configs) {
@@ -133,6 +136,9 @@ func (cfg ServiceDiscoveryConfig) Configs() (res discovery.Configs) {
 		res = append(res, x)
 	}
 	for _, x := range cfg.TritonSDConfigs {
+		res = append(res, x)
+	}
+	for _, x := range cfg.WebhookSDConfigs {
 		res = append(res, x)
 	}
 	return res

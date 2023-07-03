@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-kit/log/level"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/pkg/errors"
@@ -20,8 +21,10 @@ type PipelineStages = []interface{}
 type PipelineStage = map[interface{}]interface{}
 
 var rateLimiter *rate.Limiter
+var sizeLimiter *rate.Limiter
 var rateLimiterDrop bool
 var rateLimiterDropReason = "global_rate_limiter_drop"
+var sizeLimiterDropReason = "global_size_limiter_drop"
 
 // Pipeline pass down a log entry to each stage for mutation and/or label extraction.
 type Pipeline struct {
@@ -144,17 +147,20 @@ func (p *Pipeline) Wrap(next api.EntryHandler) api.EntryHandler {
 	go func() {
 		defer wg.Done()
 		for e := range pipelineOut {
-			if rateLimiter != nil {
-				if rateLimiterDrop {
-					if !rateLimiter.Allow() {
-						p.dropCount.WithLabelValues(rateLimiterDropReason).Inc()
-						level.Info(p.logger).Log("msg", "too many logs, drop line", "labels", e.Labels)
-						continue
-					}
-				} else {
-					_ = rateLimiter.Wait(context.Background())
-				}
+			if !p.rateLimiting(e) {
+				continue
 			}
+			//if sizeLimiter != nil {
+			//	if rateLimiterDrop {
+			//		if !sizeLimiter.AllowN(time.Now(), e.Size()) {
+			//			p.dropCount.WithLabelValues(sizeLimiterDropReason).Inc()
+			//			level.Info(p.logger).Log("msg", "too large logs, drop line", "labels", e.Labels)
+			//			continue
+			//		}
+			//	} else {
+			//		_ = rateLimiter.WaitN(context.Background(), e.Size())
+			//	}
+			//}
 			nextChan <- e.Entry
 		}
 	}()
@@ -174,6 +180,32 @@ func (p *Pipeline) Wrap(next api.EntryHandler) api.EntryHandler {
 	})
 }
 
+func (p *Pipeline) rateLimiting(e Entry) bool {
+	if sizeLimiter != nil {
+		if rateLimiterDrop {
+			if !sizeLimiter.AllowN(time.Now(), e.Size()) {
+				p.dropCount.WithLabelValues(sizeLimiterDropReason).Inc()
+				level.Info(p.logger).Log("msg", "too large logs, drop line", "labels", e.Labels)
+				return false
+			}
+		} else {
+			_ = rateLimiter.WaitN(context.Background(), e.Size())
+		}
+	}
+	if rateLimiter != nil {
+		if rateLimiterDrop {
+			if !sizeLimiter.Allow() {
+				p.dropCount.WithLabelValues(rateLimiterDropReason).Inc()
+				level.Info(p.logger).Log("msg", "too many logs, drop line", "labels", e.Labels)
+				return false
+			}
+		} else {
+			_ = rateLimiter.WaitN(context.Background(), e.Size())
+		}
+	}
+	return true
+}
+
 // Size gets the current number of stages in the pipeline
 func (p *Pipeline) Size() int {
 	return len(p.stages)
@@ -181,5 +213,10 @@ func (p *Pipeline) Size() int {
 
 func SetReadLineRateLimiter(rateVal float64, burstVal int, drop bool) {
 	rateLimiter = rate.NewLimiter(rate.Limit(rateVal), burstVal)
+	rateLimiterDrop = drop
+}
+
+func SetReadSizeRateLimiter(rateVal float64, burstVal int, drop bool) {
+	sizeLimiter = rate.NewLimiter(rate.Limit(rateVal), burstVal)
 	rateLimiterDrop = drop
 }
