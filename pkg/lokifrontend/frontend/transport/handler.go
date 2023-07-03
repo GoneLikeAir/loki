@@ -21,9 +21,9 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	querier_stats "github.com/grafana/loki/pkg/querier/stats"
-	"github.com/grafana/loki/pkg/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	querier_stats "github.com/GoneLikeAir/loki/pkg/querier/stats"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const (

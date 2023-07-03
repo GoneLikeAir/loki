@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	loki_util "github.com/grafana/loki/pkg/util"
+	loki_util "github.com/GoneLikeAir/loki/pkg/util"
 )
 
 // Mode represents in which mode an Index Gateway instance is running.

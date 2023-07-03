@@ -5,14 +5,14 @@ package queryrangebase
 
 import (
 	fmt "fmt"
+	github_com_grafana_loki_pkg_logproto "github.com/GoneLikeAir/loki/pkg/logproto"
+	logproto "github.com/GoneLikeAir/loki/pkg/logproto"
+	definitions "github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	types "github.com/gogo/protobuf/types"
 	_ "github.com/golang/protobuf/ptypes/duration"
-	github_com_grafana_loki_pkg_logproto "github.com/grafana/loki/pkg/logproto"
-	logproto "github.com/grafana/loki/pkg/logproto"
-	definitions "github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
 	io "io"
 	math "math"
 	math_bits "math/bits"

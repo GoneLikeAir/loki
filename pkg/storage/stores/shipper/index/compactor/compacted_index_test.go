@@ -12,13 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.etcd.io/bbolt"
 
-	"github.com/grafana/loki/pkg/storage"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/index/indexfile"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/indexfile"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 func TestCompactedIndex_IndexProcessor(t *testing.T) {

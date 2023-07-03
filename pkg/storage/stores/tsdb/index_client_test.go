@@ -10,8 +10,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/config"
-	index_shipper "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	index_shipper "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
 )
 
 type mockIndexShipperIndexIterator struct {

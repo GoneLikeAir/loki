@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
 )
 
 func (w *WriteBatch) Add(tableName, hashValue string, rangeValue []byte, value []byte) {

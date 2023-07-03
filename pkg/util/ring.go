@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/ring"
 
-	util_log "github.com/grafana/loki/pkg/util/log"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 // TokenFor generates a token used for finding ingesters from ring

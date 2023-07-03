@@ -13,12 +13,12 @@ import (
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/tracing"
 
-	"github.com/grafana/loki/pkg/loki"
-	"github.com/grafana/loki/pkg/util"
-	_ "github.com/grafana/loki/pkg/util/build"
-	"github.com/grafana/loki/pkg/util/cfg"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/validation"
+	"github.com/GoneLikeAir/loki/pkg/loki"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	_ "github.com/GoneLikeAir/loki/pkg/util/build"
+	"github.com/GoneLikeAir/loki/pkg/util/cfg"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/validation"
 )
 
 func exit(code int) {

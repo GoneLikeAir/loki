@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/user"
 
-	"github.com/grafana/loki/pkg/chunkenc"
-	"github.com/grafana/loki/pkg/iter"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/logql/log"
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/chunkenc"
+	"github.com/GoneLikeAir/loki/pkg/iter"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/logql/log"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
 )
 
 var NilMetrics = NewChunkMetrics(nil, 0)

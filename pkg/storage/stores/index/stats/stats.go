@@ -7,8 +7,8 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/willf/bloom"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
 )
 
 var BloomPool PoolBloom

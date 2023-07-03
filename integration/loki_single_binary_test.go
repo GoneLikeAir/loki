@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/integration/client"
-	"github.com/grafana/loki/integration/cluster"
+	"github.com/GoneLikeAir/loki/integration/client"
+	"github.com/GoneLikeAir/loki/integration/cluster"
 )
 
 func TestSingleBinaryIngestQuery(t *testing.T) {

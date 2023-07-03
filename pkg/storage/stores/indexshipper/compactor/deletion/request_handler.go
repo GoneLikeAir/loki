@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/util"
 
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,7 +18,7 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	util_log "github.com/grafana/loki/pkg/util/log"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 // DeleteRequestHandler provides handlers for delete requests

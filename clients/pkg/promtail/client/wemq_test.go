@@ -2,8 +2,8 @@ package client
 
 import (
 	"fmt"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 	"github.com/grafana/dskit/flagext"
-	util_log "github.com/grafana/loki/pkg/util/log"
 	"go.uber.org/atomic"
 	"net/url"
 	"sync"

@@ -15,8 +15,8 @@ import (
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
 )
 
 type noopTSDBManager struct {

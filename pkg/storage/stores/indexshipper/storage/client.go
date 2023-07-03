@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
 )
 
 const delimiter = "/"

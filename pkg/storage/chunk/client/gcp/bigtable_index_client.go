@@ -16,11 +16,11 @@ import (
 	ot "github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
-	"github.com/grafana/loki/pkg/util/math"
-	"github.com/grafana/loki/pkg/util/spanlogger"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/util/math"
+	"github.com/GoneLikeAir/loki/pkg/util/spanlogger"
 )
 
 const (

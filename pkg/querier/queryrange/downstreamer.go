@@ -10,11 +10,11 @@ import (
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/promql/parser"
 
-	"github.com/grafana/loki/pkg/loghttp"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/logqlmodel"
-	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/util/spanlogger"
+	"github.com/GoneLikeAir/loki/pkg/loghttp"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/GoneLikeAir/loki/pkg/util/spanlogger"
 )
 
 const (

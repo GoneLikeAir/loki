@@ -12,8 +12,8 @@ import (
 	"github.com/weaveworks/common/user"
 	"google.golang.org/grpc"
 
-	deletion_grpc "github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/client/grpc"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletion"
+	deletion_grpc "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/client/grpc"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletion"
 )
 
 type GRPCConfig struct {

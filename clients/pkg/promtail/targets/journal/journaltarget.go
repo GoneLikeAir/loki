@@ -19,12 +19,12 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
 
-	"github.com/grafana/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
 )
 
 const (

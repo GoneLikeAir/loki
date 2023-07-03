@@ -5,10 +5,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/pkg/logql/syntax"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/grafana/loki/pkg/util/filter"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/GoneLikeAir/loki/pkg/util/filter"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type DeleteRequest struct {

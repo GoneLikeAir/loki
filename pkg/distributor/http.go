@@ -7,13 +7,13 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/weaveworks/common/httpgrpc"
 
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/util"
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/grafana/loki/pkg/loghttp/push"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/validation"
+	"github.com/GoneLikeAir/loki/pkg/loghttp/push"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/validation"
 )
 
 // PushHandler reads a snappy-compressed proto from the HTTP body.

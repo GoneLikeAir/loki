@@ -8,9 +8,9 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/weaveworks/common/instrument"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
 )
 
 type Reader interface {

@@ -17,12 +17,12 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/testutil"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/testutil"
 )
 
 const (

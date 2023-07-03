@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/thanos-io/objstore"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/ruler/rulespb"
-	"github.com/grafana/loki/pkg/ruler/rulestore"
-	"github.com/grafana/loki/pkg/ruler/rulestore/objectclient"
-	"github.com/grafana/loki/pkg/storage/chunk/client/testutils"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulespb"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulestore"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulestore/objectclient"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/testutils"
 )
 
 type testGroup struct {

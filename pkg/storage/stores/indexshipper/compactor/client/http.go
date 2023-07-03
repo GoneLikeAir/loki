@@ -13,8 +13,8 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/crypto/tls"
 
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletion"
-	"github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletion"
+	"github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const (

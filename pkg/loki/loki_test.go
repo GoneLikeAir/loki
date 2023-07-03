@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 
-	internalserver "github.com/grafana/loki/pkg/server"
+	internalserver "github.com/GoneLikeAir/loki/pkg/server"
 )
 
 func TestFlagDefaults(t *testing.T) {

@@ -8,14 +8,14 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	"github.com/grafana/loki/pkg/storage/chunk/cache"
-	"github.com/grafana/loki/pkg/storage/chunk/client"
-	"github.com/grafana/loki/pkg/storage/chunk/client/gcp"
-	"github.com/grafana/loki/pkg/storage/chunk/client/testutils"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
-	"github.com/grafana/loki/pkg/validation"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/gcp"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/testutils"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/validation"
 )
 
 type fixture struct {

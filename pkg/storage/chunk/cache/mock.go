@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
 )
 
 type mockCache struct {

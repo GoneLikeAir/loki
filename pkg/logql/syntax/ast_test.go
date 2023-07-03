@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/logql/log"
+	"github.com/GoneLikeAir/loki/pkg/logql/log"
 )
 
 var labelBar, _ = ParseLabels("{app=\"bar\"}")

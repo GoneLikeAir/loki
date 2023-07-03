@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
 )
 
 type tiered []Cache

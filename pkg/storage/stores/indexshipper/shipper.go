@@ -11,14 +11,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/downloads"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/gatewayclient"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/uploads"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/downloads"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/gatewayclient"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/uploads"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type Mode string

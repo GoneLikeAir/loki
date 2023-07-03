@@ -13,12 +13,12 @@ import (
 	"github.com/go-kit/log/level"
 	"go.etcd.io/bbolt"
 
-	"github.com/grafana/loki/pkg/chunkenc"
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
-	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/chunkenc"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type deleteRequestsTable struct {

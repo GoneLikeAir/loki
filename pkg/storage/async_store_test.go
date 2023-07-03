@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/util"
 )
 
 // storeMock is a mockable version of Loki's storage, used in querier unit tests

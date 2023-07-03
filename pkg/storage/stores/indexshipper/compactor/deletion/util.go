@@ -3,9 +3,9 @@ package deletion
 import (
 	"errors"
 
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
 
-	"github.com/grafana/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
 )
 
 var (

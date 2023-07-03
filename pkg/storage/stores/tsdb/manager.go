@@ -16,10 +16,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
-	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 // nolint:revive

@@ -14,7 +14,7 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"golang.org/x/time/rate"
 
-	"github.com/grafana/loki/pkg/ruler/config"
+	"github.com/GoneLikeAir/loki/pkg/ruler/config"
 )
 
 var errMaxGlobalSeriesPerUserValidation = errors.New("The ingester.max-global-series-per-user limit is unsupported if distributor.shard-by-all-labels is disabled")

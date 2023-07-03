@@ -18,9 +18,9 @@ import (
 	"github.com/prometheus/prometheus/discovery/moby"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 func Test_TargetManager(t *testing.T) {

@@ -10,11 +10,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logql/syntax"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/stores/index"
-	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
 )
 
 type IndexGatewayClientStore struct {

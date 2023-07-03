@@ -17,9 +17,9 @@ import (
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/user"
 
-	"github.com/grafana/loki/pkg/logqlmodel"
-	storage_errors "github.com/grafana/loki/pkg/storage/errors"
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	storage_errors "github.com/GoneLikeAir/loki/pkg/storage/errors"
+	"github.com/GoneLikeAir/loki/pkg/util"
 )
 
 func Test_writeError(t *testing.T) {

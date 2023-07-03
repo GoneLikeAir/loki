@@ -10,9 +10,9 @@ import (
 	"github.com/golang/snappy"
 	"github.com/prometheus/common/model"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
 
-	"github.com/grafana/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
 )
 
 const (

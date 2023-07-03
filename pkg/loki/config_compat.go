@@ -3,8 +3,8 @@ package loki
 import (
 	"fmt"
 
-	"github.com/grafana/loki/pkg/ingester/index"
-	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/ingester/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
 )
 
 func ValidateConfigCompatibility(c Config) error {

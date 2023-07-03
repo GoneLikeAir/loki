@@ -16,17 +16,17 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
-	"github.com/grafana/loki/pkg/distributor/clientpool"
-	"github.com/grafana/loki/pkg/ingester/client"
-	"github.com/grafana/loki/pkg/iter"
-	"github.com/grafana/loki/pkg/loghttp"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/index/stats"
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/distributor/clientpool"
+	"github.com/GoneLikeAir/loki/pkg/ingester/client"
+	"github.com/GoneLikeAir/loki/pkg/iter"
+	"github.com/GoneLikeAir/loki/pkg/loghttp"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
+	"github.com/GoneLikeAir/loki/pkg/util"
 )
 
 // querierClientMock is a mockable version of QuerierClient, used in querier

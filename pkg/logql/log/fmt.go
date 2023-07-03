@@ -11,7 +11,7 @@ import (
 	"github.com/Masterminds/sprig/v3"
 	"github.com/grafana/regexp"
 
-	"github.com/grafana/loki/pkg/logqlmodel"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
 )
 
 const (

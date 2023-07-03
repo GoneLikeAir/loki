@@ -14,12 +14,12 @@ import (
 	"github.com/weaveworks/common/user"
 	"go.uber.org/atomic"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logqlmodel"
-	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/storage/config"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/util/marshal"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/util/marshal"
 )
 
 func TestLimits(t *testing.T) {

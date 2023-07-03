@@ -13,11 +13,11 @@ import (
 	"github.com/go-kit/log/level"
 	"go.etcd.io/bbolt"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	series_index "github.com/grafana/loki/pkg/storage/stores/series/index"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	series_index "github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const TempFileSuffix = ".temp"

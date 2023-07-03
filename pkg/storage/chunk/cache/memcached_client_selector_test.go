@@ -9,7 +9,7 @@ import (
 	"github.com/facette/natsort"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/chunk/cache"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
 )
 
 func TestNatSort(t *testing.T) {

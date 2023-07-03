@@ -10,9 +10,9 @@ import (
 	gzip "github.com/klauspost/pgzip"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 func Test_GetFileFromStorage(t *testing.T) {

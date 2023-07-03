@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/model"
 
-	"github.com/grafana/loki/pkg/storage/chunk/cache"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/cache"
 )
 
 type ChunkStoreConfig struct {

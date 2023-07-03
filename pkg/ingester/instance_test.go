@@ -16,15 +16,15 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/distributor/shardstreams"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/logql/syntax"
-	"github.com/grafana/loki/pkg/querier/astmapper"
-	loki_runtime "github.com/grafana/loki/pkg/runtime"
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/validation"
+	"github.com/GoneLikeAir/loki/pkg/distributor/shardstreams"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/querier/astmapper"
+	loki_runtime "github.com/GoneLikeAir/loki/pkg/runtime"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/validation"
 )
 
 func defaultConfig() *Config {

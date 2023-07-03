@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/grafana/loki/pkg/logqlmodel/metadata"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/metadata"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/prometheus/promql"
 
-	"github.com/grafana/loki/pkg/iter"
-	"github.com/grafana/loki/pkg/logql/syntax"
-	"github.com/grafana/loki/pkg/logqlmodel"
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	"github.com/grafana/loki/pkg/querier/astmapper"
-	"github.com/grafana/loki/pkg/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/iter"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/querier/astmapper"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 /*

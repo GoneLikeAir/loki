@@ -21,16 +21,16 @@ import (
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/tracing"
 
-	"github.com/grafana/loki/clients/pkg/logentry/stages"
-	"github.com/grafana/loki/clients/pkg/promtail"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
-	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
+	"github.com/GoneLikeAir/loki/clients/pkg/logentry/stages"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
+	promtail_config "github.com/GoneLikeAir/loki/clients/pkg/promtail/config"
 
-	"github.com/grafana/loki/pkg/util"
-	"github.com/grafana/loki/pkg/util/cfg"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/util/cfg"
 
-	_ "github.com/grafana/loki/pkg/util/build"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	_ "github.com/GoneLikeAir/loki/pkg/util/build"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 func init() {

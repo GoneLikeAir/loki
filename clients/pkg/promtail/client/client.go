@@ -22,10 +22,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/promql/parser"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
 
-	lokiutil "github.com/grafana/loki/pkg/util"
-	"github.com/grafana/loki/pkg/util/build"
+	lokiutil "github.com/GoneLikeAir/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/util/build"
 )
 
 const (
@@ -202,8 +202,8 @@ func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, maxStream
 		ctx:            ctx,
 		cancel:         cancel,
 
-		picker: accessPicker,
-		maxStreams:     maxStreams,
+		picker:     accessPicker,
+		maxStreams: maxStreams,
 	}
 	if cfg.Name != "" {
 		c.name = cfg.Name

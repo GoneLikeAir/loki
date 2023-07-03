@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
 )
 
 // ByKey allow you to sort chunks by ID

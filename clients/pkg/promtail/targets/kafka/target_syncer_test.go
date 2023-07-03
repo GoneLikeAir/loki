@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/loki/clients/pkg/logentry/stages"
+	"github.com/GoneLikeAir/loki/clients/pkg/logentry/stages"
 
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client/fake"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 func Test_TopicDiscovery(t *testing.T) {

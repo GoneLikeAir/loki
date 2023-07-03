@@ -20,10 +20,10 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 	prompool "github.com/prometheus/prometheus/util/pool"
 
-	"github.com/grafana/loki/pkg/chunkenc"
-	"github.com/grafana/loki/pkg/logproto"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/util/pool"
+	"github.com/GoneLikeAir/loki/pkg/chunkenc"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/util/pool"
 )
 
 var (

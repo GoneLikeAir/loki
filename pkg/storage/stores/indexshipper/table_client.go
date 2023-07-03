@@ -3,10 +3,10 @@ package indexshipper
 import (
 	"context"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
 )
 
 type tableClient struct {

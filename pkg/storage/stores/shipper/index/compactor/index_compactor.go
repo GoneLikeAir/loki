@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-kit/log"
 
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor"
 )
 
 const (

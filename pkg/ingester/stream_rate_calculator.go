@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
 )
 
 const (

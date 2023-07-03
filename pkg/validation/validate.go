@@ -6,7 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
-	"github.com/grafana/loki/pkg/util/flagext"
+	"github.com/GoneLikeAir/loki/pkg/util/flagext"
 )
 
 const (

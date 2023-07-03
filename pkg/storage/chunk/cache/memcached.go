@@ -14,8 +14,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	instr "github.com/weaveworks/common/instrument"
 
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	"github.com/grafana/loki/pkg/util/math"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	"github.com/GoneLikeAir/loki/pkg/util/math"
 )
 
 // MemcachedConfig is config to make a Memcached

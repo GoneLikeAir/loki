@@ -20,10 +20,10 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 
-	"github.com/grafana/loki/pkg/canary/comparator"
-	"github.com/grafana/loki/pkg/canary/reader"
-	"github.com/grafana/loki/pkg/canary/writer"
-	_ "github.com/grafana/loki/pkg/util/build"
+	"github.com/GoneLikeAir/loki/pkg/canary/comparator"
+	"github.com/GoneLikeAir/loki/pkg/canary/reader"
+	"github.com/GoneLikeAir/loki/pkg/canary/writer"
+	_ "github.com/GoneLikeAir/loki/pkg/util/build"
 )
 
 const (

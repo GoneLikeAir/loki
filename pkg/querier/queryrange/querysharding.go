@@ -14,16 +14,16 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/grafana/loki/pkg/loghttp"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/logqlmodel"
-	"github.com/grafana/loki/pkg/querier/astmapper"
-	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/util/marshal"
-	"github.com/grafana/loki/pkg/util/validation"
+	"github.com/GoneLikeAir/loki/pkg/loghttp"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel"
+	"github.com/GoneLikeAir/loki/pkg/querier/astmapper"
+	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/util/marshal"
+	"github.com/GoneLikeAir/loki/pkg/util/validation"
 )
 
 var errInvalidShardingRange = errors.New("Query does not fit in a single sharding configuration")

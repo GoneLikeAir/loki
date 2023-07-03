@@ -17,8 +17,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/timestamp"
 
-	"github.com/grafana/loki/pkg/querier/queryrange/queryrangebase/definitions"
-	"github.com/grafana/loki/pkg/util"
+	"github.com/GoneLikeAir/loki/pkg/querier/queryrange/queryrangebase/definitions"
+	"github.com/GoneLikeAir/loki/pkg/util"
 )
 
 // ToWriteRequest converts matched slices of Labels, Samples and Metadata into a WriteRequest proto.

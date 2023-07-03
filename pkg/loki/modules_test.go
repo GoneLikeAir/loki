@@ -12,13 +12,13 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/grafana/loki/pkg/storage"
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
-	"github.com/grafana/loki/pkg/storage/stores/shipper"
+	"github.com/GoneLikeAir/loki/pkg/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper"
 
-	"github.com/grafana/loki/pkg/storage/stores/shipper/indexgateway"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/indexgateway"
 )
 
 func Test_calculateMaxLookBack(t *testing.T) {

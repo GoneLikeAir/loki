@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 
-	util_log "github.com/grafana/loki/pkg/util/log"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 func Test_staticLabelStage_Process(t *testing.T) {

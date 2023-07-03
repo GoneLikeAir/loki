@@ -13,12 +13,12 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/logging"
 
-	_ "github.com/grafana/loki/pkg/util/build"
+	_ "github.com/GoneLikeAir/loki/pkg/util/build"
 )
 import (
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
 )
 
 var (

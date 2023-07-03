@@ -10,10 +10,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/testutil"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/testutil"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const userID = "user-id"

@@ -11,15 +11,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/client"
-	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/index"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/downloads"
-	tsdb_index "github.com/grafana/loki/pkg/storage/stores/tsdb/index"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/downloads"
+	tsdb_index "github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type IndexWriter interface {

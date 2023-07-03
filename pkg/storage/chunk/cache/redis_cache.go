@@ -7,8 +7,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 // RedisCache type caches chunks in redis

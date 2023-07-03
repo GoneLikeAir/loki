@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/storage"
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper"
-	"github.com/grafana/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/storage"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
 )
 
 func TestBoltDBShipperTableClient(t *testing.T) {

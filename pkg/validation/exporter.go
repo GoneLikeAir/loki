@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 
-	"github.com/grafana/loki/pkg/util/flagext"
+	"github.com/GoneLikeAir/loki/pkg/util/flagext"
 )
 
 type OverridesExporter struct {

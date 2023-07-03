@@ -16,15 +16,15 @@ import (
 	"github.com/weaveworks/common/httpgrpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/grafana/loki/pkg/distributor/clientpool"
-	"github.com/grafana/loki/pkg/ingester/client"
-	"github.com/grafana/loki/pkg/iter"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/logql"
-	"github.com/grafana/loki/pkg/logql/syntax"
-	"github.com/grafana/loki/pkg/logqlmodel/stats"
-	index_stats "github.com/grafana/loki/pkg/storage/stores/index/stats"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/distributor/clientpool"
+	"github.com/GoneLikeAir/loki/pkg/ingester/client"
+	"github.com/GoneLikeAir/loki/pkg/iter"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/logql"
+	"github.com/GoneLikeAir/loki/pkg/logql/syntax"
+	"github.com/GoneLikeAir/loki/pkg/logqlmodel/stats"
+	index_stats "github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type responseFromIngesters struct {

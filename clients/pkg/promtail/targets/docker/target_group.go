@@ -11,9 +11,9 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/relabel"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/api"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/positions"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
 )
 
 const DockerSource = "Docker"

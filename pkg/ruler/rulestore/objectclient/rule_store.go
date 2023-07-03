@@ -14,9 +14,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/grafana/loki/pkg/ruler/rulespb"
-	"github.com/grafana/loki/pkg/ruler/rulestore"
-	"github.com/grafana/loki/pkg/storage/chunk/client"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulespb"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulestore"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client"
 )
 
 // Object Rule Storage Schema

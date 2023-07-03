@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	util_log "github.com/grafana/loki/pkg/util/log"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 var testMatchYaml = `

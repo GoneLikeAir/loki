@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/weaveworks/common/mtime"
 
-	"github.com/grafana/loki/pkg/storage/config"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const (

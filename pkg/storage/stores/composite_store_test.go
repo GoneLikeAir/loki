@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/test"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/fetcher"
-	"github.com/grafana/loki/pkg/storage/stores/index/stats"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/fetcher"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/index/stats"
 )
 
 type mockStore int

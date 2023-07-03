@@ -6,8 +6,8 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/pkg/ingester/client"
-	"github.com/grafana/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/ingester/client"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
 )
 
 // FromChunks converts []client.Chunk to []chunk.Chunk.

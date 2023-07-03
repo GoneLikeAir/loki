@@ -12,14 +12,14 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"go.etcd.io/bbolt"
 
-	"github.com/grafana/loki/pkg/storage/chunk"
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	shipper_index "github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	series_index "github.com/grafana/loki/pkg/storage/stores/series/index"
-	"github.com/grafana/loki/pkg/storage/stores/shipper/index/indexfile"
-	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	shipper_index "github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	series_index "github.com/GoneLikeAir/loki/pkg/storage/stores/series/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/index/indexfile"
+	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
 )
 
 type CompactedIndex struct {

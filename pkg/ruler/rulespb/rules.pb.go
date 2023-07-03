@@ -5,13 +5,13 @@ package rulespb
 
 import (
 	fmt "fmt"
+	_ "github.com/GoneLikeAir/loki/pkg/logproto"
+	github_com_grafana_loki_pkg_logproto "github.com/GoneLikeAir/loki/pkg/logproto"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	types "github.com/gogo/protobuf/types"
 	_ "github.com/golang/protobuf/ptypes/duration"
-	_ "github.com/grafana/loki/pkg/logproto"
-	github_com_grafana_loki_pkg_logproto "github.com/grafana/loki/pkg/logproto"
 	io "io"
 	math "math"
 	math_bits "math/bits"

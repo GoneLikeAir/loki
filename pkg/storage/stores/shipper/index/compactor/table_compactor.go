@@ -15,11 +15,11 @@ import (
 	"github.com/pkg/errors"
 	"go.etcd.io/bbolt"
 
-	"github.com/grafana/loki/pkg/storage/chunk/client/local"
-	"github.com/grafana/loki/pkg/storage/config"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	shipper_util "github.com/grafana/loki/pkg/storage/stores/shipper/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/local"
+	"github.com/GoneLikeAir/loki/pkg/storage/config"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	shipper_util "github.com/GoneLikeAir/loki/pkg/storage/stores/shipper/util"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

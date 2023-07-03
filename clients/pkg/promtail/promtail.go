@@ -13,14 +13,14 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/grafana/loki/clients/pkg/logentry/stages"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/config"
-	"github.com/grafana/loki/clients/pkg/promtail/server"
-	"github.com/grafana/loki/clients/pkg/promtail/targets"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+	"github.com/GoneLikeAir/loki/clients/pkg/logentry/stages"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/client"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/config"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/server"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets"
+	"github.com/GoneLikeAir/loki/clients/pkg/promtail/targets/target"
 
-	util_log "github.com/grafana/loki/pkg/util/log"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 var reloadSuccessTotal = prometheus.NewCounter(prometheus.CounterOpts{

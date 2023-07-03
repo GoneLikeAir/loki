@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/thanos-io/objstore"
 
-	"github.com/grafana/loki/pkg/storage/bucket/filesystem"
+	"github.com/GoneLikeAir/loki/pkg/storage/bucket/filesystem"
 )
 
 func PrepareFilesystemBucket(t testing.TB) (objstore.Bucket, string) {

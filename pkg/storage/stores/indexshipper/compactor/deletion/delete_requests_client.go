@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-kit/log/level"
 
-	"github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type CompactorClient interface {

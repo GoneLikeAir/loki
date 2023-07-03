@@ -33,13 +33,13 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/ruler/config"
-	"github.com/grafana/loki/pkg/ruler/rulespb"
-	"github.com/grafana/loki/pkg/ruler/rulestore"
-	"github.com/grafana/loki/pkg/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
-	"github.com/grafana/loki/pkg/util/validation"
+	"github.com/GoneLikeAir/loki/pkg/logproto"
+	"github.com/GoneLikeAir/loki/pkg/ruler/config"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulespb"
+	"github.com/GoneLikeAir/loki/pkg/ruler/rulestore"
+	"github.com/GoneLikeAir/loki/pkg/util"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/util/validation"
 )
 
 var (

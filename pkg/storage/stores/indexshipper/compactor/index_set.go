@@ -12,12 +12,12 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
 
-	"github.com/grafana/loki/pkg/chunkenc"
-	"github.com/grafana/loki/pkg/storage/chunk/client/util"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/index"
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/storage"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/chunkenc"
+	"github.com/GoneLikeAir/loki/pkg/storage/chunk/client/util"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/index"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/storage"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 type IndexSet interface {

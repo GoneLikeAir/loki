@@ -8,8 +8,8 @@ import (
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 
-	"github.com/grafana/loki/pkg/storage/stores/tsdb/index"
-	"github.com/grafana/loki/pkg/util/encoding"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/tsdb/index"
+	"github.com/GoneLikeAir/loki/pkg/util/encoding"
 )
 
 type WAL interface {

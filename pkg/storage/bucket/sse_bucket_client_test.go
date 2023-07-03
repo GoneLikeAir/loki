@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/thanos-io/objstore"
 
-	"github.com/grafana/loki/pkg/storage/bucket/s3"
+	"github.com/GoneLikeAir/loki/pkg/storage/bucket/s3"
 )
 
 func TestSSEBucketClient_Upload_ShouldInjectCustomSSEConfig(t *testing.T) {

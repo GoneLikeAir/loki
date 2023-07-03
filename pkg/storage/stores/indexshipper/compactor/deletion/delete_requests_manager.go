@@ -7,14 +7,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/deletionmode"
 
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 
-	"github.com/grafana/loki/pkg/storage/stores/indexshipper/compactor/retention"
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/GoneLikeAir/loki/pkg/storage/stores/indexshipper/compactor/retention"
+	util_log "github.com/GoneLikeAir/loki/pkg/util/log"
 )
 
 const (
